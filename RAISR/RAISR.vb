@@ -4,6 +4,17 @@
     Dim Scale, patchLength, gradientLength
     Dim FilterBuckets As List(Of Emgu.CV.Mat()) '     std::vector<std::vector<cv::Mat>>  filterBuckets; // contains trained filter
 
+    Enum Rotation
+        NO_ROTATION = -1
+        ROTATE_90 = 0
+        ROTATE_180 = 1
+        ROTATE_270 = 2
+    End Enum
+    Enum Mirror
+        MIRROR = 0
+        NO_MIRROR = 1
+    End Enum
+
     Public Sub New(ByVal _imageMatList As List(Of Emgu.CV.Mat),
                    ByVal _scale As Integer,
                    ByVal _patchLength As Integer,
@@ -31,9 +42,6 @@
     End Sub
 
     Sub Train()
-
-        '    void RAISR::train() {
-        '    // initialize the calculation buckets
         Dim numberOfFilters As Integer = Scale * Scale
         Dim margin As Integer = patchLength / 2
 
@@ -56,59 +64,47 @@
             Dim rows As Integer = LRImage.Rows '        int rows = LRImage.rows;
             Dim cols As Integer = LRImage.Cols '        int cols = LRImage.cols;
 
-            '        // loop each High Resolution pixel
-            '        for (int r = margin; r<= rows - margin -1; r++){
-            '            for (int c = margin ; c <= cols - margin -1 ; c++){
+            For r As Integer = margin To rows - margin - 1 '        for (int r = margin; r <= rows - margin -1; r++){
+                For c As Integer = margin To cols - margin - 1 '    for (int c = margin ; c <= cols - margin -1 ; c++){
 
-            '                // find the type of the pixel
-            '                int pixelType = ((r-margin) % scale) * scale  + ((c-margin) % scale);
+                    Dim PixelType As Integer = ((r - margin) Mod Scale) * Scale + ((c - margin) Mod Scale) ' int pixelType = ((r-margin) % scale) * scale  + ((c-margin) % scale);
+                    Dim HRPixel As Double = HRImage.Data(r)(c) ' double HRPixel = HRImage.at<double>(r,c);
 
-            '                // get the value of current High Resolution pixel
-            '                double HRPixel = HRImage.at<double>(r,c);
+                    Dim Patch As Emgu.CV.Mat = New Emgu.CV.Mat(LRImage,
+                                                               New Emgu.CV.Structure.Range(r - margin, r + margin + 1),
+                                                               New Emgu.CV.Structure.Range(c - margin, c + margin + 1)).Clone
 
-            '                // find the corresponding Low Resolution patch
-            '                // Range is left inclusive and right exclusive function
-            '                Mat patch = LRImage(
-            '                        Range(r - margin, r + margin + 1),
-            '                        Range(c - margin, c + margin + 1)
-            '                ).clone();
+                    For Each MirrorFlag In {Mirror.NO_MIRROR, Mirror.MIRROR} ' for (Mirror mirrorFlag: {Mirror::NO_MIRROR, Mirror::MIRROR}){
+                        If MirrorFlag = Mirror.MIRROR Then
+                            ' if (mirrorFlag == MIRROR) flip(patch, patch, 1);
+                        End If
 
-            '                // for each patch, we can mirror it and rotate it 90/180/270 degree at the same time
-            '                // to get 7 more training patches, which gives us total 8 patches at each pixel
-            '                for (Mirror mirrorFlag: {Mirror::NO_MIRROR, Mirror::MIRROR}){
-            '                    if (mirrorFlag == MIRROR) flip(patch, patch, 1);
-            '                    for (Rotation rotateFlag: {Rotation::NO_ROTATION, Rotation::ROTATE_90, Rotation::ROTATE_180, Rotation::ROTATE_270}) {
-            '                        Mat rotatedPatch;
-            '                        if (rotateFlag == Rotation::NO_ROTATION) rotatedPatch = patch.clone();
-            '                        else rotate(patch, rotatedPatch, rotateFlag);
-            '                        int hashValue = getHashValue(buckets, r, c, rotateFlag, mirrorFlag);
+                        For Each RotateFlag In {Rotation.NO_ROTATION, Rotation.ROTATE_90, Rotation.ROTATE_180, Rotation.ROTATE_270}
+                            Dim rotatedPatch As Emgu.CV.Mat
+                            If (RotateFlag = Rotation.NO_ROTATION) Then
+                                rotatedPatch = Patch.Clone()
+                            Else
+                                ' rotate(patch, rotatedPatch, rotateFlag) ' TODO
+                            End If
 
-            '                        // use the current patch to fill the calculation matrix
-            '                        fillBucketsMatrix(ATA, ATb, hashValue, rotatedPatch, HRPixel, pixelType);
-            '                    }
-            '                }
-            '            }
-            '        }
-            '    }
+                            Dim HashValue As Double = GetHashValue(Buckets, r, c, RotateFlag, MirrorFlag) ' int hashValue = getHashValue(buckets, r, c, rotateFlag, mirrorFlag);
+                            FillBucketsMatrix(ATA, ATB, HashValue, Patch, HRPixel, PixelType)  '            fillBucketsMatrix(ATA, ATb, hashValue, rotatedPatch, HRPixel, pixelType);
+                        Next
+                    Next
+                Next
+            Next
         Next
 
+        For i As Integer = 0 To FilterBuckets.Count - 1
+            For j As Integer = 0 To numberOfFilters
+                Dim currentEntryFilter As Emgu.CV.Mat = Nothing
+                If IsNothing(ATA(i)(j)) Then Continue For
+                Emgu.CV.CvInvoke.Solve(ATA(i)(j), ATB(i)(j), currentEntryFilter, Emgu.CV.CvEnum.DecompMethod.Svd) ' solve(ATA[i][j], ATb[i][j], currentEntryFilter, DECOMP_SVD);
+                FilterBuckets(i)(j) = currentEntryFilter '                                                          filterBuckets[i][j] = currentEntryFilter;
+            Next
+        Next
 
-        '    // loop each buckets and loop every calculation matrix inside
-        '    //  to solve least square to get corresponding filter
-        '    for (int i = 0 ; i< filterBuckets.size(); i++){
-        '        for (int j = 0 ; j< numberOfFilters; j++){
-        '            Mat currentEntryFilter;
-        '            if (ATA[i][j].empty()) continue;
-        '            solve(ATA[i][j], ATb[i][j], currentEntryFilter, DECOMP_SVD);
-        '            filterBuckets[i][j] = currentEntryFilter;
-        '        }
-        '    }
-
-        '    // when training stage is done, we should set flag to true
-        '    trained = true;
-
-        '    cout << "training process done "<< endl << flush;
-        '}
+        Trained = True
 
     End Sub
     Sub Test(DownScale As Boolean,
@@ -320,4 +316,36 @@
 
         Return ResultImage
     End Function
+    Function GetHashValue(ByRef Buckets As HashBuckets, R As Integer, C As Integer, rotateFlag As Rotation, Mirror As Mirror) As Integer
+        '        int getHashValue(HashBuckets & buckets, int r, int c, Rotation rotateFlag, Mirror mirror){
+        '    bool mirrorFlag = (mirror == MIRROR);
+        '    array<int, 3> hashVector = buckets.hash(r,c, rotateFlag, mirrorFlag);
+        '    return hashVector[0]*HashBuckets::numOfStrength*HashBuckets::numOfCoherence+
+        '           hashVector[1]*HashBuckets::numOfStrength+
+        '           hashVector[2];
+        '}
+    End Function
+    Sub FillBucketsMatrix(ATA()() As Emgu.CV.Mat, ATB()() As Emgu.CV.Mat, HashValue As Integer, Patch As Emgu.CV.Mat, HRPixel As Double, PixelType As Integer)
+        '        void fillBucketsMatrix(vector<vector<Mat>> &ATA, vector<vector<Mat>> & ATb, int hashValue, Mat patch, double HRPixel, int pixelType){
+
+        '    Mat flattedPatch = patch.reshape(0,1);
+
+
+        '    Mat ATAElement = flattedPatch.t()*flattedPatch;
+
+        '    // fill ATA
+        '    if (ATA[hashValue][pixelType].empty()){
+        '        ATA[hashValue][pixelType] = ATAElement;
+        '    }else{
+        '        ATA[hashValue][pixelType] += ATAElement;
+        '    }
+
+        '    Mat ATbElement = flattedPatch.t()*HRPixel;
+        '    if (ATb[hashValue][pixelType].empty()){
+        '        ATb[hashValue][pixelType] = ATbElement;
+        '    }else{
+        '        ATb[hashValue][pixelType] += ATbElement;
+        '    }
+        '}
+    End Sub
 End Class
