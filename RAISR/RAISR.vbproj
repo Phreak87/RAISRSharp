@@ -120,6 +120,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ORG_C\Kopie von RAISR.cpp" />
     <Content Include="ORG_C\OK\License-LGPL.txt" />
     <Content Include="ORG_C\OK\HashBuckets.cpp" />
     <Content Include="ORG_C\OK\HashBuckets.h" />

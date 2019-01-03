@@ -30,8 +30,9 @@
         '}
 
     End Sub
-    Sub Hash()
+    Function Hash(r As Integer, c As Integer, rot As Integer, mirror As Boolean) As Integer()()
         '        array<int, 3> HashBuckets::hash(int r, int c, int rot, bool mirror) {
+
         '    // number of channels remains the same, reshape to n^2 x 1 matrix
         '    // need to clone() for ROI does not have consecutive memory
         '    Mat patchGx = imgGx(Range(r - patchLen/2, r + patchLen/2 + 1),
@@ -39,10 +40,6 @@
         '    Mat patchGy = imgGy(Range(r - patchLen/2, r + patchLen/2 + 1),
         '                        Range(c - patchLen/2, c + patchLen/2 + 1)).clone();
 
-        '    // Note the gradient of the rotated image is not the same as the rotated gradient,
-        '    // so we first use geometric relationship to get the new coordinate of the point (r, c).
-        '    // Also, as long as the center of the patch is determined, flip and transpose will not
-        '    // change the result of GTWG. (i.e. the commented section)
         '    if (mirror) {
         '        flip(patchGx, patchGx, 1);
         '        flip(patchGy, patchGy, 1);
@@ -51,28 +48,13 @@
 
         '    if (rot == ROTATE_90_CLOCKWISE) {
         '        swap(patchGx, patchGy);
-        '//        transpose(patchGx, patchGx);
-        '//        flip(patchGx, patchGx, 1);
         '        patchGx *= -1;
-        '//        transpose(patchGy, patchGy);
-        '//        flip(patchGy, patchGy, 1);
         '    } else if (rot == ROTATE_90_COUNTERCLOCKWISE) {
         '        swap(patchGx, patchGy);
-        '//        transpose(patchGx, patchGx);
-        '//        flip(patchGx, patchGx, 0);
         '        patchGy *= -1;
-        '//        transpose(patchGy, patchGy);
-        '//        flip(patchGy, patchGy, 0);
         '    } else if (rot == ROTATE_180) {
-        '//        flip(patchGx, patchGx, 1);
-        '//        flip(patchGx, patchGx, 0);
-        '//        patchGx *= -1;
-        '//        flip(patchGy, patchGy, 1);
-        '//        flip(patchGy, patchGy, 0);
-        '//        patchGy *= -1;
-        '    }
 
-        '//debugMat(patchGx);
+        '    }
 
         '    patchGx = patchGx.reshape(0, patchLen * patchLen);
         '    patchGy = patchGy.reshape(0, patchLen * patchLen);
@@ -121,9 +103,9 @@
         '    return {angleIdx, coherenceIdx, strengthIdx};
         '}
 
-    End Sub
+    End Function
     Sub BreakImg(rot As Integer, mirror As Boolean)
-        ' void HashBuckets::breakImg(int rot, bool mirror) {
+
         '    array<int, 3> t;
         '    for (int r = patchLen/2; r + patchLen/2 < img.rows; r++) {
         '        for (int c = patchLen/2; c + patchLen/2 < img.cols; c++) {
@@ -151,7 +133,6 @@
         '        }
         '        printf("\n%d\n\n", cohereCnt);
         '    }
-        '}
 
     End Sub
 End Class

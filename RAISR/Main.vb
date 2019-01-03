@@ -11,9 +11,6 @@
 
         Dim model As New RAISR(ImageList, 4, 11, 9)         '    RAISR model(imageList, 4, 11, 9);
 
-        '//    string filterFilePath = "./filters/2018_5_31_19_40_15_scale_2.filter";
-        '//    model.readInFilter(filterFilePath);
-
         model.Train()                       '    model.train();
         model.WriteOutFilter(filterPath)    '    model.writeOutFilter(filterPath);
         dirPath = "./test_images"           '    dirPath = "./test_images";

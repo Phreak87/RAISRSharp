@@ -317,35 +317,30 @@
         Return ResultImage
     End Function
     Function GetHashValue(ByRef Buckets As HashBuckets, R As Integer, C As Integer, rotateFlag As Rotation, Mirror As Mirror) As Integer
-        '        int getHashValue(HashBuckets & buckets, int r, int c, Rotation rotateFlag, Mirror mirror){
-        '    bool mirrorFlag = (mirror == MIRROR);
-        '    array<int, 3> hashVector = buckets.hash(r,c, rotateFlag, mirrorFlag);
-        '    return hashVector[0]*HashBuckets::numOfStrength*HashBuckets::numOfCoherence+
-        '           hashVector[1]*HashBuckets::numOfStrength+
+        Dim MirrorFlag As Boolean = Mirror
+        Dim HashVector()() As Integer = Buckets.Hash(R, C, rotateFlag, MirrorFlag)
+
+        '    return hashVector[0]*HashBuckets::numOfStrength*HashBuckets::numOfCoherence +
+        '           hashVector[1]*HashBuckets::numOfStrength +
         '           hashVector[2];
-        '}
+        Return HashVector(0) * Buckets.NumOfStrength * Buckets.NumOfCoherence + HashVector(1) * Buckets.NumOfStrength + HashVector(2)
     End Function
     Sub FillBucketsMatrix(ATA()() As Emgu.CV.Mat, ATB()() As Emgu.CV.Mat, HashValue As Integer, Patch As Emgu.CV.Mat, HRPixel As Double, PixelType As Integer)
-        '        void fillBucketsMatrix(vector<vector<Mat>> &ATA, vector<vector<Mat>> & ATb, int hashValue, Mat patch, double HRPixel, int pixelType){
+        Dim flattedPatch As Emgu.CV.Mat = Patch.Reshape(0, 1)           '    Mat flattedPatch = patch.reshape(0,1);
 
-        '    Mat flattedPatch = patch.reshape(0,1);
+        Dim ATAElement As Emgu.CV.Mat '= flattedPatch.T() * flattedPatch '    Mat ATAElement = flattedPatch.t()*flattedPatch;
+        If IsNothing(ATA(HashValue)(PixelType)) Then
+            ATA(HashValue)(PixelType) = ATAElement
+        Else
+            ' ATA(HashValue)(PixelType) += ATAElement
+        End If
 
+        Dim ATBElement As Emgu.CV.Mat '= flattedPatch.T * HRPixel
+        If IsNothing(ATB(HashValue)(PixelType)) Then
+            ATB(HashValue)(PixelType) = ATBElement
+        Else
+            'ATB(HashValue)(PixelType) += ATBElement
+        End If
 
-        '    Mat ATAElement = flattedPatch.t()*flattedPatch;
-
-        '    // fill ATA
-        '    if (ATA[hashValue][pixelType].empty()){
-        '        ATA[hashValue][pixelType] = ATAElement;
-        '    }else{
-        '        ATA[hashValue][pixelType] += ATAElement;
-        '    }
-
-        '    Mat ATbElement = flattedPatch.t()*HRPixel;
-        '    if (ATb[hashValue][pixelType].empty()){
-        '        ATb[hashValue][pixelType] = ATbElement;
-        '    }else{
-        '        ATb[hashValue][pixelType] += ATbElement;
-        '    }
-        '}
     End Sub
 End Class
