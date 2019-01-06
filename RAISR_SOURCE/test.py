@@ -37,6 +37,7 @@ with open(filtername, "rb") as fp:
 # Matrix preprocessing
 # Preprocessing normalized Gaussian matrix W for hashkey calculation
 weighting = gaussian2d([gradientsize, gradientsize], 2)
+test = weighting.ravel()
 weighting = np.diag(weighting.ravel())
 
 # Get image list

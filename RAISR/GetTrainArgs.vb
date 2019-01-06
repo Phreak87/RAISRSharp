@@ -1,4 +1,4 @@
-﻿Module gettrainargs
+﻿Class gettrainargs
     Function gettrainargs() As Object
         Return {""}
         'Dim parser = argparse.ArgumentParser()
@@ -8,4 +8,4 @@
         'Dim args = parser.parse_args()
         'Return args
     End Function
-End Module
+End Class

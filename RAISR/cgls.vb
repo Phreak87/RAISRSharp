@@ -1,4 +1,5 @@
-﻿Module cgls
+﻿
+Module cgls
     Function cgls(ByVal A As Object, ByVal b As Object) As Object
         Dim _tup_1 = A.shape
         Dim height = _tup_1.Item1
@@ -7,7 +8,6 @@
 
         While True
             Dim sumA = A.sum()
-
             If sumA < 100 Then
                 Exit While
             End If
