@@ -214,8 +214,13 @@
     Shared Function count_nonzero()
 
     End Function
-    Shared Function linspace()
-
+    Shared Function linspace(a As Integer, b As Integer, c As Integer)
+        Dim Steps As Double = (b - a) / c
+        Dim Ret As New List(Of Double)
+        For i As Double = a To b Step Steps
+            Ret.Add(Math.Round(i, 0))
+        Next
+        Return Ret
     End Function
     Shared Function Reshape()
 
@@ -224,12 +229,10 @@
     Shared Function Diag(A As Double(), Optional k As Double = 0)
         Dim Res As New List(Of Double())
         If k = 0 Then
-            Dim L1 As New List(Of Double)
+            Dim L1(A.Count) As Double
             For i As Integer = 0 To A.Count - 1
-                If i > 0 Then L1.AddRange(NP.Zeros(i))
-                L1.Add(A(i))
-                If i < A.Count Then L1.AddRange(NP.Zeros(A.Count - i - 1))
-                Res.Add(L1.ToArray) : L1.Clear()
+                L1(i) = (A(i))
+                Res.Add(L1)
             Next
         Else
             Throw New NotImplementedException
