@@ -34,11 +34,14 @@ if args.filter:
 with open(filtername, "rb") as fp:
     h = pickle.load(fp)
 
+# ------------------------------------------------------------------
 # Matrix preprocessing
 # Preprocessing normalized Gaussian matrix W for hashkey calculation
+# ------------------------------------------------------------------
 weighting = gaussian2d([gradientsize, gradientsize], 2)
-test = weighting.ravel()
 weighting = np.diag(weighting.ravel())
+
+
 
 # Get image list
 imagelist = []
@@ -52,27 +55,57 @@ for image in imagelist:
     #print('\r', end='')
     #print(' ' * 60, end='')
     #print('\rUpscaling image ' + str(imagecount) + ' of ' + str(len(imagelist)) + ' (' + image + ')')
+    
+    # -----------------------------------------------
+    # Part 1
+    # -----------------------------------------------
     origin = cv2.imread(image)
-    # Extract only the luminance in YCbCr
     ycrcvorigin = cv2.cvtColor(origin, cv2.COLOR_BGR2YCrCb)
     grayorigin = ycrcvorigin[:,:,0]
-    # Normalized to [0,1]
-    grayorigin = cv2.normalize(grayorigin.astype('float'), None, grayorigin.min()/255, grayorigin.max()/255, cv2.NORM_MINMAX)
-    # Upscale (bilinear interpolation)
+
+    # -----------------------------------------------
+    # Part 2 - Normalisieren
+    # -----------------------------------------------
+    minorig = grayorigin.min()/255
+    maxorig = grayorigin.max()/255
+    grayorigin = cv2.normalize(grayorigin.astype('float'),
+                               None, 
+                               grayorigin.min()/255, 
+                               grayorigin.max()/255, 
+                               cv2.NORM_MINMAX)
+
+    # -----------------------------------------------
+    # Part 3 - Low Resolution Grid
+    # -----------------------------------------------
     heightLR, widthLR = grayorigin.shape
     heightgridLR = np.linspace(0,heightLR-1,heightLR)
     widthgridLR = np.linspace(0,widthLR-1,widthLR)
 
-    bilinearinterp = interpolate.interp2d(widthgridLR, heightgridLR, grayorigin, kind='linear')
+    # -----------------------------------------------
+    # Part 4 ... biliearinterp ist eine Funktionsklasse!
+    # -----------------------------------------------
+    bilinearinterp = interpolate.interp2d(widthgridLR, 
+                                          heightgridLR, 
+                                          grayorigin, 
+                                          kind='linear')
+    
+    # -----------------------------------------------
+    # Part 5 - High Resolution Grid
+    # -----------------------------------------------
     heightgridHR = np.linspace(0,heightLR-0.5,heightLR*2)
     widthgridHR = np.linspace(0,widthLR-0.5,widthLR*2)
     upscaledLR = bilinearinterp(widthgridHR, heightgridHR)
 
-    # Calculate predictHR pixels
+    # -----------------------------------------------
+    # Part 6 - Calculate predictHR pixels
+    # -----------------------------------------------
     heightHR, widthHR = upscaledLR.shape
     predictHR = np.zeros((heightHR-2*margin, widthHR-2*margin))
+    
+
     operationcount = 0
     totaloperations = (heightHR-2*margin) * (widthHR-2*margin)
+
     for row in range(margin, heightHR-margin):
         for col in range(margin, widthHR-margin):
             #if round(operationcount*100/totaloperations) != round((operationcount+1)*100/totaloperations):

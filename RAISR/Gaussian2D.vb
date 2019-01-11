@@ -4,10 +4,10 @@
 
         If IsNothing(shape) Then shape = {3, 3}
 
-        Dim m = (shape(0) - 1) / 2
-        Dim n = (shape(1) - 1) / 2
+        Dim m As Integer = (shape(0) - 1) / 2
+        Dim n As Integer = (shape(1) - 1) / 2
 
-        Dim Y_X As Tuple(Of Double(), Double()()) = NP.OGrid({-m, m}, {-n, n}) ' Dont add +1 like in the Original
+        Dim Y_X As Tuple(Of Double(), Double()()) = NP.OGrid({-m, m + 1}, {-n, n + 1})
         Dim y = Y_X.Item1
         Dim x = Y_X.Item2
 
