@@ -1,4 +1,4 @@
-import cv2
+﻿import cv2
 import numpy as np
 import os
 import pickle
@@ -44,11 +44,11 @@ weighting = np.diag(weighting.ravel())
 
 
 # Get image list
-imagelist = []
-for parent, dirnames, filenames in os.walk(trainpath):
-    for filename in filenames:
-        if filename.lower().endswith(('.bmp', '.dib', '.png', '.jpg', '.jpeg', '.pbm', '.pgm', '.ppm', '.tif', '.tiff')):
-            imagelist.append(os.path.join(parent, filename))
+imagelist = ["test\\Test.jpg"]
+#for parent, dirnames, filenames in os.walk(trainpath):
+#    for filename in filenames:
+#        if filename.lower().endswith(('.bmp', '.dib', '.png', '.jpg', '.jpeg', '.pbm', '.pgm', '.ppm', '.tif', '.tiff')):
+#            imagelist.append(os.path.join(parent, filename))
 
 imagecount = 1
 for image in imagelist:

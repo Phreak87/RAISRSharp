@@ -31,6 +31,7 @@ Class test
         'h = Pickle.Load(filtername) ' Blob needs to be converted!
         weighting = gaussian2d.gaussian2d({gradientsize, gradientsize}, 2)
         weighting = NP.Diag(NP.Ravel(weighting))
+        Dim WMat As Emgu.CV.Mat = NPSharp.NPEmgu.MatFromArray(weighting)
 
         For Each File In My.Computer.FileSystem.GetFiles(trainpath)
             If File.EndsWith(".jpg") = True Then imagelist.Add(File)
@@ -61,9 +62,6 @@ Class test
                                        maxorig(0),
                                        CvEnum.NormType.MinMax)
             ' Debug(grayorigin) => OK
-
-            Emgu.CV.CvInvoke.cvSetImageROI(grayorigin.DataPointer, New Rectangle(1, 1, 5, 5))
-            Debug(grayorigin)
 
             ' ------------------------------------------
             ' Part 3 - Low Resolution Grid
@@ -103,12 +101,15 @@ Class test
                 For col As Integer = margin To widthHR - margin
                     operationcount += 1
 
-                    Dim Patch As New Mat : Emgu.CV.CvInvoke.cvGetSubRect(upscaledLR.DataPointer, Patch.DataPointer, New Rectangle(0, 0, 11, 11))
-                    'upscaledLR.CopyTo(Patch,New  Emgu.CV.Util.VectorOfRect (((New Drawing.PointF(0, 0), New Drawing.SizeF(11, 11), 0))
-                    ' Dim patch As Mat  ' = 'upscaledLR((row - patchmargin)((row + patchmargin) + 1), (col - patchmargin)((col + patchmargin) + 1)).ravel
-                    Dim gradientblock As Object '= upscaledLR((row - gradientmargin)((row + gradientmargin) + 1), (col - gradientmargin)((col + gradientmargin) + 1))
+                    Dim Patch As Emgu.CV.Mat = New Emgu.CV.Mat(upscaledLR, New Rectangle(row - patchmargin, col - patchmargin, row + patchmargin + 1, col + patchmargin + 1)).Clone
+                    Patch = NPSharp.NPEmgu.Ravel(Patch)
 
-                    Dim HK = hashkey.hashkey(gradientblock, Qangle, weighting)
+                    Dim gradientblock As Mat = New Emgu.CV.Mat(upscaledLR, New Rectangle(row - gradientmargin,
+                                                                                         col - gradientmargin,
+                                                                                         row + gradientmargin,
+                                                                                         col + gradientmargin)).Clone
+
+                    Dim HK = hashkey.hashkey(gradientblock, Qangle, WMat)
                     Dim angle = HK.angle
                     Dim strength = HK.strength
                     Dim coherence = HK.coherence

@@ -52,10 +52,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Emgu.CV.UI">
-      <HintPath>..\..\RAISRSharp.git\trunk\RAISR\bin\Debug\Emgu.CV.UI.dll</HintPath>
+      <HintPath>..\..\RAISR\bin\Debug\Emgu.CV.UI.dll</HintPath>
     </Reference>
     <Reference Include="Emgu.CV.World">
-      <HintPath>..\..\RAISRSharp.git\trunk\RAISR\bin\Debug\Emgu.CV.World.dll</HintPath>
+      <HintPath>..\..\RAISR\bin\Debug\Emgu.CV.World.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />

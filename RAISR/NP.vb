@@ -205,9 +205,7 @@
     Shared Function vstack()
 
     End Function
-    Shared Function isreal()
 
-    End Function
     Shared Function real()
 
     End Function

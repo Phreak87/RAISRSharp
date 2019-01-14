@@ -1,9 +1,12 @@
-import numpy as np
+﻿import numpy as np
+import cv2
 from math import atan2, floor, pi
 
 def hashkey(block, Qangle, W):
     # Calculate gradient
     gy, gx = np.gradient(block)
+
+    cv2.imshow ("test",gy)
 
     # Transform 2D matrix into 1D array
     gx = gx.ravel()
@@ -11,7 +14,7 @@ def hashkey(block, Qangle, W):
 
     # SVD calculation
     G = np.vstack((gx,gy)).T
-    GTWG = G.T.dot(W).dot(G)
+    GTWG = G.T.dot(W) #.dot(G)
     w, v = np.linalg.eig(GTWG);
 
     # Make sure V and D contain only real numbers

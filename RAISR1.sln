@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "RAISR", "RAISR\RAISR.vbproj", "{1D5D7AFA-ADBE-4173-8240-388F2121A3D7}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "NPSharp", "..\..\NPSharp\NPSharp\NPSharp.vbproj", "{99D8C666-0CFA-4F9F-9941-A2C901B8C33A}"
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "NPSharp", "NPSharp\NPSharp\NPSharp.vbproj", "{99D8C666-0CFA-4F9F-9941-A2C901B8C33A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

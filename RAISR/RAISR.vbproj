@@ -126,7 +126,7 @@
     <None Include="Readme.md" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\NPSharp\NPSharp\NPSharp.vbproj">
+    <ProjectReference Include="..\NPSharp\NPSharp\NPSharp.vbproj">
       <Project>{99D8C666-0CFA-4F9F-9941-A2C901B8C33A}</Project>
       <Name>NPSharp</Name>
     </ProjectReference>

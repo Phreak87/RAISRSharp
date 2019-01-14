@@ -6,7 +6,20 @@ NPSharp
 </name>
 </assembly>
 <members>
-<member name="M:NPSharp.NPNative.OGrid(System.Double,System.Double,System.Int32)">
+<member name="P:NPSharp.My.Resources.Resources.ResourceManager">
+	<summary>
+  Gibt die zwischengespeicherte ResourceManager-Instanz zurück, die von dieser Klasse verwendet wird.
+</summary>
+</member><member name="P:NPSharp.My.Resources.Resources.Culture">
+	<summary>
+  Überschreibt die CurrentUICulture-Eigenschaft des aktuellen Threads für alle
+  Ressourcenzuordnungen, die diese stark typisierte Ressourcenklasse verwenden.
+</summary>
+</member><member name="T:NPSharp.My.Resources.Resources">
+	<summary>
+  Eine stark typisierte Ressourcenklasse zum Suchen von lokalisierten Zeichenfolgen usw.
+</summary>
+</member><member name="M:NPSharp.NPNative.OGrid(System.Double,System.Double,System.Int32)">
 	<summary>
  &gt;&gt;&gt; from numpy import ogrid
 &gt;&gt;&gt; ogrid[-1:1:5j]
@@ -25,19 +38,6 @@ array([-1. , -0.5,  0. ,  0.5,  1. ])
 	<param name="Count"></param>
 	<returns></returns>
 	<remarks></remarks>
-</member><member name="P:NPSharp.My.Resources.Resources.ResourceManager">
-	<summary>
-  Gibt die zwischengespeicherte ResourceManager-Instanz zurück, die von dieser Klasse verwendet wird.
-</summary>
-</member><member name="P:NPSharp.My.Resources.Resources.Culture">
-	<summary>
-  Überschreibt die CurrentUICulture-Eigenschaft des aktuellen Threads für alle
-  Ressourcenzuordnungen, die diese stark typisierte Ressourcenklasse verwenden.
-</summary>
-</member><member name="T:NPSharp.My.Resources.Resources">
-	<summary>
-  Eine stark typisierte Ressourcenklasse zum Suchen von lokalisierten Zeichenfolgen usw.
-</summary>
 </member>
 </members>
 </doc>

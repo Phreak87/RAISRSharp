@@ -106,6 +106,28 @@
         Next
         Return L0.ToArray
     End Function
+
+    Shared Function Multiply(ByVal A As Short(), ByVal B As Short) As Short()
+        Dim L1 As New List(Of Short)
+        For i As Integer = 0 To A.Count - 1
+            L1.Add(A(i) * B)
+        Next
+        Return L1.ToArray
+    End Function
+    Shared Function Multiply(ByVal A As Short(), ByVal B As Short()) As Short()
+        Dim L1 As New List(Of Short)
+        For i As Integer = 0 To A.Count - 1
+            L1.Add(A(i) * B(i))
+        Next
+        Return L1.ToArray
+    End Function
+    Shared Function Multiply(ByVal A As Short()(), ByVal B As Short()()) As Short()()
+        Dim L0 As New List(Of Short())
+        For i As Integer = 0 To A.Count - 1
+            L0.Add(Multiply(A(i), B(i)))
+        Next
+        Return L0.ToArray
+    End Function
 #End Region
 
 #Region "Divide"
