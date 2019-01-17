@@ -1,58 +1,63 @@
-﻿
-Module hashkey
+﻿Imports NPSharp.NPEmgu
+Imports NPSharp.NPPublic
+
+Class hashkey
     Const pi = Math.PI
-    Function hashkey(ByVal Block As Emgu.CV.Mat,
-                     ByVal Qangle As Integer,
-                     ByVal W As Emgu.CV.Mat) As Object
 
-        Dim _tup_1 As New NPSharp.NPEmgu.Gradient(Block)
-        Dim gy = NPSharp.NPEmgu.Ravel(_tup_1.Y)
-        Dim gx = NPSharp.NPEmgu.Ravel(_tup_1.X)
+    Property angle = 0.0
+    Property strength = 0.0
+    Property coherence = 0.0
 
-        Dim G As Emgu.CV.Mat = NPSharp.NPEmgu.VStack(gx, gy).T
-        Dim GTWG1 As Emgu.CV.Mat = NPSharp.NPEmgu.dot(gx, gy)
-        Dim GTWG = NPSharp.NPEmgu.dot(GTWG1, G)
+    Sub New(ByVal Block As Mat,
+            ByVal Qangle As Integer,
+            ByVal WIn As Mat)
 
-        Dim _tup_2 As New NPSharp.NPEmgu.eigen(gx)
-        Dim w1 = _tup_2.Values
-        Dim v = _tup_2.Vectors
-        Dim nonzerow = NPSharp.NPEmgu.count_nonzero(NPSharp.NPEmgu.isreal(W))
-        Dim nonzerov = NPSharp.NPEmgu.count_nonzero(NPSharp.NPEmgu.isreal(v))
+        Dim _tup_1 As New Gradient(Block) '          x9,9 y9,9
+        Dim gy = _tup_1.Y.NP_Ravel  '                81,1 (W,H)
+        Dim gx = _tup_1.X.NP_Ravel  '                81,1 (W,H)
 
-        If nonzerow <> 0 Then W = NP.real(W)
-        If nonzerov <> 0 Then v = NP.real(v)
+        Dim G As Mat = gx.NP_VStack(gy).T '         {2,81}
+        Dim GTWG1 As Mat = G.T.dot(WIn, False) '  
+        Dim GTWG As Mat = GTWG1.NP_dot(G, False)
+        Dim GTWGD As Double()() = GetData(GTWG)
 
-        'Dim idx = W.argsort()() ' [' - 1:]
+        Dim Eigen As New Eigen(GTWG)
+        Dim W = Eigen.Values : Dim WD As Double()() = GetData(W)
+        Dim V = Eigen.Vectors : Dim VD As Double()() = GetData(V)
 
-        'W = W.Row(idx)
-        'v = v(":", idx)
-        'Dim theta '= Math.Atan2(v(1, 0), v(0, 0))
+        Dim nonzerow = NPSharp.NPEmgu.Count_nonzero(IsReal(W)) : If nonzerow <> 0 Then W = real(W)
+        Dim nonzerov = NPSharp.NPEmgu.Count_nonzero(IsReal(V)) : If nonzerov <> 0 Then V = real(V)
 
-        'If theta < 0 Then theta = theta + pi
+        Dim idx = NPSharp.Python.Slice(W.NP_ArgSort, ":", ":", "-1")
 
-        'Dim lamda = W.Row(0)
-        'Dim sqrtlamda1 = Math.Sqrt(W.Row(0)(0))
-        'Dim sqrtlamda2 = Math.Sqrt(W.Row(1)(0))
+        W = W.Row(0)
+        ' V = V(":", idx)
+        Dim theta = Math.Atan2(1.0, 0.0)
+        If theta < 0 Then theta = theta + pi
 
-        'Dim u As Double = 0 : If sqrtlamda1 + sqrtlamda2 > 0 Then u = (sqrtlamda1 - sqrtlamda2) / (sqrtlamda1 + sqrtlamda2)
-        'Dim angle = Math.Floor(theta / pi * Qangle)
+        Dim lamda = WD(0)(0)
+        Dim sqrtlamda1 = Math.Sqrt(WD(0)(0))
+        Dim sqrtlamda2 = Math.Sqrt(WD(1)(0))
 
-        'Dim strength = 0
-        'If lamda < 0.0001 Then
-        'ElseIf lamda > 0.001 Then : strength = 2
-        'Else : strength = 1
-        'End If
+        Dim u As Double = 0 : If sqrtlamda1 + sqrtlamda2 > 0 Then u = (sqrtlamda1 - sqrtlamda2) / (sqrtlamda1 + sqrtlamda2)
+        angle = Math.Floor(theta / pi * Qangle)
 
-        'Dim coherence = 0
-        'If u < 0.25 Then
-        'ElseIf u > 0.5 Then : coherence = 2
-        'Else : coherence = 1
-        'End If
+        strength = 0
+        If lamda < 0.0001 Then
+        ElseIf lamda > 0.001 Then : strength = 2
+        Else : strength = 1
+        End If
 
-        'If angle > 23 Then : angle = 23
-        'ElseIf angle < 0 Then : angle = 0
-        'End If
+        coherence = 0
+        If u < 0.25 Then
+        ElseIf u > 0.5 Then : coherence = 2
+        Else : coherence = 1
+        End If
 
-        'Return Tuple.Create(angle, strength, coherence)
-    End Function
-End Module
+        If angle > 23 Then : angle = 23
+        ElseIf angle < 0 Then : angle = 0
+        End If
+
+
+    End Sub
+End Class

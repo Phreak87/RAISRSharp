@@ -1,26 +1,26 @@
-﻿Module gaussian2d
+﻿Imports NPSharp.NPEmgu
+
+Module gaussian2d
     Function gaussian2d(Optional ByVal shape As Integer() = Nothing,
-                        Optional ByVal sigma As Double = 0.5) As Object
+                        Optional ByVal sigma As Double = 0.5) As Mat
 
         If IsNothing(shape) Then shape = {3, 3}
-
         Dim m As Integer = (shape(0) - 1) / 2
         Dim n As Integer = (shape(1) - 1) / 2
 
-        Dim Y_X As Tuple(Of Double(), Double()()) = NP.OGrid({-m, m + 1}, {-n, n + 1})
-        Dim y = Y_X.Item1
-        Dim x = Y_X.Item2
+        Dim Y_X As Tuple(Of Double(), Double()()) = NPSharp.NPNative.OGrid({-m, m + 1}, {-n, n + 1})
+        Dim Y = New Mat(Y_X.Item1) ' VectorV
+        Dim X = New Mat(Y_X.Item2) ' VectorH
 
-        Dim MX_ = NP.Multiply(x, x)
-        Dim MY_ = NP.Multiply(y, y)
-        Dim A_ = NP.Add(MX_, MY_)
-        Dim N_ = NP.Negate(A_)
-        Dim D_ = NP.Divide(A_, 2.0 * sigma * sigma)
-        Dim h = NP.exp(D_)
+        Dim MX_ = X * X ' VectorH * VectorH
+        Dim MY_ = Y * Y ' VectorV * VectorV
+        Dim A_ = MX_ + MY_
+        Dim N_ = A_ * -1
+        Dim D_ = A_ / (2.0 * sigma * sigma)
+        Dim h = D_.exp
         'h(h < NP.finfo(h.dtype).eps * h.max()) = 0
-        Dim sumh = NP.Sum(h)
-        If sumh <> 0 Then h = NP.Divide(h, sumh)
-        Dim Test As String = NP.Show(h)
+        Dim sumh = NPSharp.NPEmgu.Sum(h)
+        If sumh <> 0 Then h = h / sumh
         Return h
     End Function
 End Module

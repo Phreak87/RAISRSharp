@@ -101,7 +101,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="NP.vb" />
     <Compile Include="Test.vb" />
     <Compile Include="Train.vb" />
   </ItemGroup>
@@ -123,7 +122,6 @@
       <CustomToolNamespace>My</CustomToolNamespace>
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
-    <None Include="Readme.md" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NPSharp\NPSharp\NPSharp.vbproj">

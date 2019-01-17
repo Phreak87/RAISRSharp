@@ -19,25 +19,6 @@ RAISR
 	<summary>
   A strongly-typed resource class, for looking up localized strings, etc.
 </summary>
-</member><member name="M:RAISR.NP.OGrid(System.Double,System.Double,System.Int32)">
-	<summary>
- &gt;&gt;&gt; from numpy import ogrid
-&gt;&gt;&gt; ogrid[-1:1:5j]
-array([-1. , -0.5,  0. ,  0.5,  1. ])
-&gt;&gt;&gt; ogrid[0:5,0:5]
-[
- array([[0],
-        [1],
-        [2],
-        [3],
-        [4]]), 
- array([[0, 1, 2, 3, 4]])]
- </summary>
-	<param name="_From"></param>
-	<param name="_To"></param>
-	<param name="Count"></param>
-	<returns></returns>
-	<remarks></remarks>
 </member>
 </members>
 </doc>

@@ -14,7 +14,8 @@ def hashkey(block, Qangle, W):
 
     # SVD calculation
     G = np.vstack((gx,gy)).T
-    GTWG = G.T.dot(W) #.dot(G)
+    GTWG1 = G.T.dot(W)
+    GTWG = GTWG1.dot(G)
     w, v = np.linalg.eig(GTWG);
 
     # Make sure V and D contain only real numbers
@@ -26,12 +27,14 @@ def hashkey(block, Qangle, W):
         v = np.real(v)
 
     # Sort w and v according to the descending order of w
+    # w = np.array([[1,0,2],[5,4,6],[9,7,8]])
     idx = w.argsort()[::-1]
     w = w[idx]
     v = v[:,idx]
 
     # Calculate theta
-    theta = atan2(v[1,0], v[0,0])
+    tv1 = v[1,0]
+    theta = atan2(tv1, v[0,0])
     if theta < 0:
         theta = theta + pi
 
