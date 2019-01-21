@@ -1,11 +1,16 @@
-﻿Imports System.Runtime.InteropServices
-Imports NPSharp.NPEmgu
+﻿Imports NPSharp.NPEmgu
 
-Public Class NPPublic
+Partial Public Class NPPublic
     '<DebuggerStepThrough()>
     Class MatrixExplain
         Private A As Object
         Private B As Object
+
+        Public Overrides Function ToString() As String
+            Return "A:" & NumTypeA.ToString & ":" & ObTypeA.ToString & ":" & MatTypA.ToString & " ... " &
+                   "B:" & NumTypeB.ToString & ":" & ObTypeB.ToString & ":" & MatTypB.ToString
+        End Function
+
         ReadOnly Property MatAData As Object
             Get
                 If ObTypeA = ObjType.Mat Then Return GetData(A)
@@ -57,7 +62,8 @@ Public Class NPPublic
         End Property
         Property ErrDesc As String
 
-        Sub New(MatA As Object, Optional MatB As Object = Nothing)
+        <DebuggerStepThrough()>
+        Sub New(ByVal MatA As Object, Optional ByVal MatB As Object = Nothing)
             A = MatA
             B = MatB
         End Sub
@@ -85,11 +91,19 @@ Public Class NPPublic
             Cv32S_Int32 = Emgu.CV.CvEnum.DepthType.Cv32S
             Cv32F_Single = Emgu.CV.CvEnum.DepthType.Cv32F
             Cv64F_Double = Emgu.CV.CvEnum.DepthType.Cv64F
-            Unknown = 99
+            Failed = 99
         End Enum
         Function NumType(ByVal Array As Object) As NP_DataType
-            If IsNothing(Array) Then Return NP_DataType.Unknown
+            If IsNothing(Array) Then Return NP_DataType.Failed
+            Dim Check As String = Array.GetType.ToString
             Select Case Array.GetType
+                Case GetType(Mat) : Return Array.depth
+
+                Case GetType(Byte) : Return NP_DataType.Cv8U_Byte
+                Case GetType(Byte()) : Return NP_DataType.Cv8U_Byte
+                Case GetType(Byte()()) : Return NP_DataType.Cv8U_Byte
+                Case GetType(Byte()()()) : Return NP_DataType.Cv8U_Byte
+
                 Case GetType(Integer) : Return NP_DataType.Cv32S_Int32
                 Case GetType(Integer()) : Return NP_DataType.Cv32S_Int32
                 Case GetType(Integer()()) : Return NP_DataType.Cv32S_Int32
@@ -98,6 +112,7 @@ Public Class NPPublic
                 Case GetType(Double()) : Return NP_DataType.Cv64F_Double
                 Case GetType(Double()()) : Return NP_DataType.Cv64F_Double
 
+                Case Else : Throw New Exception("Not implemented yet")
             End Select
         End Function
 
@@ -171,14 +186,15 @@ Public Class NPPublic
                 Dim AM As Emgu.CV.Mat = CType(A.OrgMat, Emgu.CV.Mat)
                 Dim BM As Emgu.CV.Mat = CType(B.OrgMat, Emgu.CV.Mat)
                 If MatTypA = DataType.VectorH And MatTypB = DataType.VectorH Then If AM.Cols = BM.Cols Then Return CalcType.VH_VH_SYM
-                If MatTypA = DataType.VectorV And MatTypB = DataType.VectorV Then If AM.Cols = BM.Cols Then Return CalcType.VV_VV_SYM
+                If MatTypA = DataType.VectorV And MatTypB = DataType.VectorV Then If AM.Rows = BM.Rows Then Return CalcType.VV_VV_SYM
                 If MatTypA = DataType.VectorH And MatTypB = DataType.VectorH Then If AM.Cols <> BM.Cols Then Return CalcType.VH_VH_ASYM
-                If MatTypA = DataType.VectorV And MatTypB = DataType.VectorV Then If AM.Cols <> BM.Cols Then Return CalcType.VV_VV_ASYM
+                If MatTypA = DataType.VectorV And MatTypB = DataType.VectorV Then If AM.Rows <> BM.Rows Then Return CalcType.VV_VV_ASYM
 
                 If MatTypA = DataType.VectorH And MatTypB = DataType.VectorV Then If AM.Cols = BM.Rows Then Return CalcType.VH_VV_SYM
-                If MatTypA = DataType.VectorV And MatTypB = DataType.VectorH Then If AM.Cols = BM.Rows Then Return CalcType.VV_VH_SYM
+                If MatTypA = DataType.VectorV And MatTypB = DataType.VectorH Then If AM.Rows = BM.Cols Then Return CalcType.VV_VH_SYM
                 If MatTypA = DataType.VectorH And MatTypB = DataType.VectorV Then If AM.Cols <> BM.Rows Then Return CalcType.VH_VV_ASYM
-                If MatTypA = DataType.VectorV And MatTypB = DataType.VectorH Then If AM.Cols <> BM.Rows Then Return CalcType.VV_VH_ASYM
+                If MatTypA = DataType.VectorV And MatTypB = DataType.VectorH Then If AM.Rows <> BM.Cols Then Return CalcType.VV_VH_ASYM
+
                 If MatTypA = DataType.Matrix And MatTypB = DataType.VectorH Then Return CalcType.M_VH_SYM
                 If MatTypA = DataType.Matrix And MatTypB = DataType.VectorV Then Return CalcType.M_VV_SYM
                 If MatTypA = DataType.Matrix Then
@@ -219,220 +235,4 @@ Public Class NPPublic
             Return CalcType.FAIL
         End Function
     End Class
-
-#Region "Set/Get"
-    'Default	-1	default
-    'Cv8U	0	Byte
-    'Cv8S	1	SByte
-    'Cv16U	2	UInt16
-    'Cv16S	3	Int16
-    'Cv32S	4	Int32/Integer
-    'Cv32F	5	float
-    'Cv64F	6	double
-
-    <DebuggerStepThrough()>
-    Shared Function ArrayToMat(ByVal Array As Object) As Mat
-        Return MatFromArray(Array)
-    End Function
-    '<DebuggerStepThrough()>
-    Shared Function MatFromArray(ByVal Array As Object) As Mat
-        If IsNothing(Array) Then Return Nothing
-        Select Case (Array.GetType)
-
-            Case GetType(System.Double())
-                Dim Ret = New Mat(1, Array.length, Emgu.CV.CvEnum.DepthType.Cv64F, 1)
-                SetData(Ret, Array) : Return Ret
-            Case GetType(System.Double()())
-                Dim Ret = New Mat(Array.length, Array(0).length, Emgu.CV.CvEnum.DepthType.Cv64F, 1)
-                Dim Test = Ret.NP_GetData
-                SetData(Ret, Array) : Return Ret
-            Case GetType(Double()()())
-                Throw New Exception
-
-            Case GetType(Integer)
-                Dim Ret = New Mat(1, 1, Emgu.CV.CvEnum.DepthType.Cv32S, 1)
-                SetData(Ret, Array) : Return Ret
-            Case GetType(Integer())
-                Dim Ret = New Mat(1, Array.length, Emgu.CV.CvEnum.DepthType.Cv32S, 1)
-                SetData(Ret, Array) : Return Ret
-            Case GetType(Integer()())
-                Dim Ret = New Mat(Array.length, Array(0).length, Emgu.CV.CvEnum.DepthType.Cv32S, 1)
-                SetData(Ret, Array) : Return Ret
-            Case GetType(Integer()()())
-                Throw New Exception
-
-        End Select
-        Return Nothing
-    End Function
-
-    <DebuggerStepThrough()>
-    Shared Function MatToArray(ByVal Mat As Mat) As Object
-        Return GetData(Mat)
-    End Function
-    <DebuggerStepThrough()>
-    Shared Function ArrayFromMat(ByVal Mat As Mat) As Object
-        Return GetData(Mat)
-    End Function
-
-    '<DebuggerStepThrough()>
-    Shared Function GetData(ByVal A As Mat,
-                            Optional ByVal Row As String = ":",
-                            Optional ByVal Col As String = ":",
-                            Optional ByVal Idx As String = ":") As Object
-        If IsNothing(A) Then Return Nothing
-
-        If Row = ":" And
-           Col = ":" And
-           Idx = ":" Then
-            Select Case A.Depth
-                Case Emgu.CV.CvEnum.DepthType.Cv8U : Return GetCV8U(A) '    Byte
-                Case Emgu.CV.CvEnum.DepthType.Cv16S : Return GetCV16S(A) '  Int16
-                Case Emgu.CV.CvEnum.DepthType.Cv32S : Return GetCV32S(A) '  Integer
-                Case Emgu.CV.CvEnum.DepthType.Cv32F : Return GetCV32F(A) '  Float
-                Case Emgu.CV.CvEnum.DepthType.Cv64F : Return GetCV64F(A) '  Double
-                Case Else : Throw New NotImplementedException
-            End Select
-        Else
-            Dim IRow As Integer() = {Row, Row} : If Row = ":" Then IRow = {0, A.Height}
-            Dim ICol As Integer() = {Col, Col} : If Col = ":" Then ICol = {0, A.Width}
-            Dim IIdx As Integer() = {Idx, Idx} : If Idx = ":" Then IIdx = {0, A.Channels}
-            Return A.Row(Row).Col(Col).NP_GetData(Idx)
-        End If
-    End Function
-
-    <DebuggerStepThrough()>
-    Private Shared Function GetCV8U(ByVal A As Mat) As Byte()()
-        Dim RET As New List(Of Byte())
-        For i As Integer = 0 To A.Rows - 1
-            Dim MDat(A.Width - 1) As Byte
-            Marshal.Copy(A.Row(i).DataPointer, MDat, 0, A.Row(i).Width)
-            RET.Add(MDat)
-        Next
-        Return RET.ToArray
-    End Function
-    <DebuggerStepThrough()>
-    Private Shared Function GetCV16S(ByVal A As Mat) As Int16()()
-        Dim RET As New List(Of Int16())
-        For i As Integer = 0 To A.Rows - 1
-            Dim MDat(A.Width - 1) As Int16
-            Marshal.Copy(A.Row(i).DataPointer, MDat, 0, A.Row(i).Width)
-            RET.Add(MDat)
-        Next
-        Return RET.ToArray
-    End Function
-    <DebuggerStepThrough()>
-    Private Shared Function GetCV32S(ByVal A As Mat) As Integer()()
-        Dim RET As New List(Of Integer())
-        For i As Integer = 0 To A.Rows - 1
-            Dim MDat(A.Width - 1) As Integer
-            Marshal.Copy(A.Row(i).DataPointer, MDat, 0, A.Row(i).Width)
-            RET.Add(MDat)
-        Next
-        Return RET.ToArray
-    End Function
-    <DebuggerStepThrough()>
-    Private Shared Function GetCV32F(ByVal A As Mat) As Single()()
-        Dim RET As New List(Of Single())
-        For i As Single = 0 To A.Rows - 1
-            Dim MDat(A.Width - 1) As Single
-            Marshal.Copy(A.Row(i).DataPointer, MDat, 0, A.Row(i).Width)
-            RET.Add(MDat)
-        Next
-        Return RET.ToArray
-    End Function
-    <DebuggerStepThrough()>
-    Private Shared Function GetCV64F(ByVal A As Mat) As Double()()
-        Dim RET As New List(Of Double())
-        For i As Integer = 0 To A.Rows - 1
-            Dim MDat(A.Width - 1) As Double
-            Marshal.Copy(A.Row(i).DataPointer, MDat, 0, A.Row(i).Width)
-            RET.Add(MDat)
-        Next
-        Return RET.ToArray
-    End Function
-
-    '<DebuggerStepThrough()>
-    Shared Sub SetData(ByVal A As Mat, ByVal Values As Object)
-        Select Case A.Depth
-            Case Emgu.CV.CvEnum.DepthType.Cv8U : SetCV8U(A, Values) '   Byte
-            Case Emgu.CV.CvEnum.DepthType.Cv16S : SetCV16S(A, Values) ' Int16
-            Case Emgu.CV.CvEnum.DepthType.Cv32S : SetCV32S(A, Values) ' Int32/Integer
-            Case Emgu.CV.CvEnum.DepthType.Cv64F : SetCV64F(A, Values) ' Double
-            Case Else : Throw New NotImplementedException
-        End Select
-    End Sub
-
-    <DebuggerStepThrough()>
-    Private Shared Sub SetCV8U(ByVal A As Mat, ByVal Values As Object)
-        Select Case Values.GetType
-            Case GetType(Byte()())
-                For i As Integer = 0 To A.Rows - 1
-                    Marshal.Copy(Values(i), 0, A.Row(i).DataPointer, A.Row(i).Width)
-                Next
-            Case GetType(Byte())
-                Marshal.Copy(Values, 0, A.Row(0).DataPointer, A.Width)
-        End Select
-    End Sub
-    <DebuggerStepThrough()>
-    Private Shared Sub SetCV16S(ByVal A As Mat, ByVal Values As Object)
-        Select Case Values.GetType
-            Case GetType(Int16()())
-                For i As Integer = 0 To A.Rows - 1
-                    Marshal.Copy(Values(i), 0, A.Row(i).DataPointer, A.Row(i).Width)
-                Next
-            Case GetType(Int16())
-                Marshal.Copy(Values, 0, A.Row(0).DataPointer, A.Width)
-        End Select
-    End Sub
-    '<DebuggerStepThrough()>
-    Private Shared Sub SetCV32S(ByVal A As Mat, ByVal Values As Object)
-        Select Case Values.GetType
-            Case GetType(Integer)
-                Marshal.WriteInt32(A.Row(0).DataPointer, Values)
-            Case GetType(Integer())
-                Marshal.Copy(Values, 0, A.Row(0).DataPointer, A.Width)
-            Case GetType(Integer()())
-                For i As Integer = 0 To A.Rows - 1
-                    Marshal.Copy(Values(i), 0, A.Row(i).DataPointer, A.Row(i).Width)
-                Next
-        End Select
-    End Sub
-    '<DebuggerStepThrough()>
-    Private Shared Sub SetCV64F(ByVal A As Mat, ByVal Values As Object)
-        Select Case Values.GetType
-            Case GetType(Double()())
-                For i As Integer = 0 To A.Rows - 1
-                    Marshal.Copy(Values(i), 0, A.Row(i).DataPointer, A.Row(i).Width)
-                Next
-            Case GetType(Double())
-                Marshal.Copy(Values, 0, A.Row(0).DataPointer, A.Height)
-            Case GetType(Double)
-                Marshal.Copy({CDbl(Values)}, 0, A.Row(0).DataPointer, 1)
-        End Select
-    End Sub
-#End Region
-
-#Region "Helper"
-    Shared Function Show(ByVal A As Double()()) As String
-        Dim S As New System.Text.StringBuilder
-        S.Append("<HTML><HEAD></HEADY><BODY>")
-        S.Append("<Table Border=1>")
-        For Each Entry In A
-            S.Append(AddHTMLLine(Entry))
-        Next
-        S.Append("</BODY></HTML>")
-        Return S.ToString
-    End Function
-    Shared Function Show(ByVal A As Double()) As String
-        Dim S As New System.Text.StringBuilder
-        S.Append("<HTML><HEAD></HEADY><BODY>")
-        S.Append("<Table Border=1>")
-        S.Append(AddHTMLLine(A))
-        S.Append("</BODY></HTML>")
-        Return S.ToString
-    End Function
-    Private Shared Function AddHTMLLine(ByVal A As Double()) As String
-        Return ("<TR><TD>" & String.Join("</TD><TD>", A) & "</TD>")
-    End Function
-#End Region
 End Class

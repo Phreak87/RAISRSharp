@@ -108,12 +108,16 @@ for image in imagelist:
 
     for row in range(margin, heightHR-margin):
         for col in range(margin, widthHR-margin):
+
+
             #if round(operationcount*100/totaloperations) != round((operationcount+1)*100/totaloperations):
             #    print('\r|', end='')
             #    print('#' * round((operationcount+1)*100/totaloperations/2), end='')
             #    print(' ' * (50 - round((operationcount+1)*100/totaloperations/2)), end='')
             #    print('|  ' + str(round((operationcount+1)*100/totaloperations)) + '%', end='')
             #    sys.stdout.flush()
+
+
             operationcount += 1
             # Get patch
             patch = upscaledLR[row-patchmargin:row+patchmargin+1, col-patchmargin:col+patchmargin+1]

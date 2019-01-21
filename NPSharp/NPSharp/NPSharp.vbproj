@@ -78,8 +78,9 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="NPEmgu\Class1.vb" />
-    <Compile Include="NPNative\Class1.vb" />
+    <Compile Include="Matrix.vb" />
+    <Compile Include="NPEmgu\Publics.vb" />
+    <Compile Include="NPEmgu\Mat.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -95,7 +96,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Include="Public.vb" />
+    <Compile Include="SetGet.vb" />
     <Compile Include="Python.vb" />
   </ItemGroup>
   <ItemGroup>

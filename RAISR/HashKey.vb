@@ -16,28 +16,28 @@ Class hashkey
         Dim gy = _tup_1.Y.NP_Ravel  '                81,1 (W,H)
         Dim gx = _tup_1.X.NP_Ravel  '                81,1 (W,H)
 
-        Dim G As Mat = gx.NP_VStack(gy).T '         {2,81}
-        Dim GTWG1 As Mat = G.T.dot(WIn, False) '  
-        Dim GTWG As Mat = GTWG1.NP_dot(G, False)
-        Dim GTWGD As Double()() = GetData(GTWG)
+        Dim G As Mat = gx.NP_VStack(gy).T '          {81,2} => Vertikal Stapeln (1x1) + (1x1) => (1x2)
+        Dim GTWG1 As Mat = G.T.Dot(WIn, True) '      W Multiplizieren mit Transponierter Matrix G
+        Dim GTWG As Mat = GTWG1.Dot(G, False) '      GTWG1 Multiplizieren mit G
 
         Dim Eigen As New Eigen(GTWG)
-        Dim W = Eigen.Values : Dim WD As Double()() = GetData(W)
-        Dim V = Eigen.Vectors : Dim VD As Double()() = GetData(V)
+        Dim W = Eigen.Values
+        Dim V = Eigen.Vectors
 
-        Dim nonzerow = NPSharp.NPEmgu.Count_nonzero(IsReal(W)) : If nonzerow <> 0 Then W = real(W)
-        Dim nonzerov = NPSharp.NPEmgu.Count_nonzero(IsReal(V)) : If nonzerov <> 0 Then V = real(V)
+        'Dim nonzerow = NPSharp.NPEmgu.Count_nonzero(IsReal(W)) : If nonzerow <> 0 Then W = real(W)
+        'Dim nonzerov = NPSharp.NPEmgu.Count_nonzero(IsReal(V)) : If nonzerov <> 0 Then V = real(V)
 
-        Dim idx = NPSharp.Python.Slice(W.NP_ArgSort, ":", ":", "-1")
+        Dim idx = W.NP_ArgSort '                            SortierREIHENFOLGE (Nicht Daten)
+        idx = NPSharp.Python.Slice(idx, ":", ":", "-1") '   Invertieren (Zeilen)
 
-        W = W.Row(0)
-        ' V = V(":", idx)
+        W = NPSharp.Python.Slice(W, idx)
+        V = NPSharp.Python.Slice(V, ":", idx)
         Dim theta = Math.Atan2(1.0, 0.0)
         If theta < 0 Then theta = theta + pi
 
-        Dim lamda = WD(0)(0)
-        Dim sqrtlamda1 = Math.Sqrt(WD(0)(0))
-        Dim sqrtlamda2 = Math.Sqrt(WD(1)(0))
+        Dim lamda = W.NP_GetData(0)(0)
+        Dim sqrtlamda1 = Math.Sqrt(W.NP_GetData(0)(0))
+        Dim sqrtlamda2 = Math.Sqrt(W.NP_GetData(1)(0))
 
         Dim u As Double = 0 : If sqrtlamda1 + sqrtlamda2 > 0 Then u = (sqrtlamda1 - sqrtlamda2) / (sqrtlamda1 + sqrtlamda2)
         angle = Math.Floor(theta / pi * Qangle)

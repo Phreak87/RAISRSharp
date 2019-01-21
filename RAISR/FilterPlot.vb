@@ -18,7 +18,7 @@ Module filterplot
                 For Each strength In Range(0, Qstrength)
                     For Each angle In Range(0, Qangle)
                         Dim filter1d = h(angle, strength, coherence, pixeltype)
-                        Dim filter2d = NPSharp.NPNative.Reshape(filter1d, Tuple.Create(patchsize, patchsize))
+                        Dim filter2d '= NPSharp.NPNative.Reshape(filter1d, Tuple.Create(patchsize, patchsize))
                         Dim ax '= fig.add_subplot(Qstrength * Qcoherence, Qangle, plotcounter)
                         ax.imshow(filter2d, interpolation:="none", extent:=New List(Of Object) From {0, 10, 0, 10}, vmin:=minvalue, vmax:=maxvalue)
                         ax.axis("off")

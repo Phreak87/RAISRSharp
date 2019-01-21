@@ -4,7 +4,7 @@ Module cgls
         Dim _tup_1 = A.shape
         Dim height = _tup_1.Item1
         Dim width = _tup_1.Item2
-        Dim x = NPSharp.NPNative.Zeros(height, 1)
+        Dim x = NPSharp.NPEmgu.Mat.Zeros(height, 1)
 
         While True
             Dim sumA = A.sum()
@@ -12,12 +12,12 @@ Module cgls
                 Exit While
             End If
 
-            If NPSharp.NPNative.linalg.det(A) < 1 Then
-                A = A + NPSharp.NPNative.eye(height, width) * sumA * 0.000000005
-            Else
-                'x = NPSharp.NPEmgu.Linalg.Inv(A).Dot(b)
-                Exit While
-            End If
+            'If NPSharp.NPNative.linalg.det(A) < 1 Then
+            '    A = A + NPSharp.NPNative.eye(height, width) * sumA * 0.000000005
+            'Else
+            '    'x = NPSharp.NPEmgu.Linalg.Inv(A).Dot(b)
+            '    Exit While
+            'End If
         End While
 
         Return x

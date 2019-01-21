@@ -14,16 +14,22 @@ Class test
     Dim _1A() As Integer = {2}
     Dim _1B()() As Integer = {{2}.ToArray}
     ' Vectors
-    Dim _1x3 As Integer()() = {{0, 1, 2}.ToArray}
-    Dim _1x4 As Integer()() = {{0, 1, 2, 3}.ToArray}
-    Dim _3x1 As Integer()() = {{0}.ToArray, {1}.ToArray, {2}.ToArray}
-    Dim _4x1 As Integer()() = {{0}.ToArray, {1}.ToArray, {2}.ToArray, {3}.ToArray}
+    Dim _1x3 As Integer()() = {{2, 0, 1}.ToArray}
+    Dim _1x4 As Integer()() = {{2, 0, 1, 3}.ToArray}
+    Dim _3x1 As Integer()() = {{2}.ToArray, {0}.ToArray, {1}.ToArray}
+    Dim _4x1 As Integer()() = {{2}.ToArray, {0}.ToArray, {1}.ToArray, {3}.ToArray}
     ' Matrixes
+    Dim _2x2 As Integer()() = {{1, 2}.ToArray, {3, 4}.ToArray}
     Dim _2x3 As Integer()() = {{0, 1, 2}.ToArray, {4, 5, 3}.ToArray}
     Dim _3x2 As Integer()() = {{0, 1}.ToArray, {8, 7}.ToArray, {4, 5}.ToArray}
     Dim _3x3 As Integer()() = {{5, 7, 1}.ToArray, {2, 9, 8}.ToArray, {8, 3, 4}.ToArray}
+    Dim _4x3 As Integer()() = {{5, 7, 1}.ToArray, {2, 9, 8}.ToArray, {8, 3, 4}.ToArray, {8, 3, 4}.ToArray}
+    Dim _3x4 As Integer()() = {{5, 7, 1, 3}.ToArray, {2, 9, 8, 5}.ToArray, {8, 3, 4, 0}.ToArray}
 
     ' Normal Numerics
+    Dim MatSort0_1 As Mat = MatFromArray({0, 1})
+    Dim MatSort1_0 As Mat = MatFromArray({1, 0})
+
     Dim Mat_1 As Mat = MatFromArray(_1)
     Dim Mat_1A As Mat = MatFromArray(_1A)
     Dim Mat_1B As Mat = MatFromArray(_1B)
@@ -33,9 +39,12 @@ Class test
     Dim Mat_1x4 As Mat = MatFromArray(_1x4)
     Dim Mat_4x1 As Mat = MatFromArray(_4x1)
     ' Matrixes
+    Dim Mat_2x2 As Mat = MatFromArray(_2x2)
     Dim Mat_2x3 As Mat = MatFromArray(_2x3)
     Dim Mat_3x2 As Mat = MatFromArray(_3x2)
     Dim Mat_3x3 As Mat = MatFromArray(_3x3)
+    Dim Mat_4x3 As Mat = MatFromArray(_4x3)
+    Dim Mat_3x4 As Mat = MatFromArray(_3x4)
 #End Region
 
     Public args = New gettestargs()
@@ -61,7 +70,24 @@ Class test
         Dim Res3 = NPSharp.Python.Slice(Res2, ":", ":", "-1")
     End Sub
     Sub TestMul()
-        Dim Res2 = Mat_3x3 * Mat_3x1
+        Dim A As Mat
+        Dim B As MatrixExplain
+        B = New MatrixExplain(Mat_1, Mat_1) : A = Mat_1 * Mat_1 ' N_N (2 * 2)
+        B = New MatrixExplain(Mat_3x1, Mat_3x1) : A = Mat_3x1 * Mat_3x1 'Case CalcType.VV_VV_SYM (2,0,1 * 2,0,1)    => OK
+        B = New MatrixExplain(Mat_1x3, Mat_1x3) : A = Mat_1x3 * Mat_1x3 'Case CalcType.VH_VH_SYM (2,0,1 * 2,0,1)    => OK
+        B = New MatrixExplain(Mat_3x1, Mat_1x3) : A = Mat_3x1 * Mat_1x3 'Case CalcType.VV_VH_SYM (2,0,1 * 2,0,1)    => OK
+        B = New MatrixExplain(Mat_1x3, Mat_3x1) : A = Mat_1x3 * Mat_3x1 'Case CalcType.VH_VV_SYM (2,0,1 * 2,0,1)    => OK
+        B = New MatrixExplain(Mat_3x1, Mat_1x4) : A = Mat_3x1 * Mat_1x4 'Case CalcType.VV_VH_ASYM (2,0,1 * 2,0,1,3) => OK
+        B = New MatrixExplain(Mat_1x3, Mat_4x1) : A = Mat_1x3 * Mat_4x1 'Case CalcType.VH_VV_ASYM (2,0,1 * 2,0,1,3) => OK
+        B = New MatrixExplain(Mat_3x3, Mat_1x3) : A = Mat_3x3 * Mat_1x3 'Case CalcType.M_VH_SYM                     => OK
+        B = New MatrixExplain(Mat_3x3, Mat_3x1) : A = Mat_3x3 * Mat_3x1 'Case CalcType.M_VV_SYM                     => OK
+        B = New MatrixExplain(Mat_3x3, Mat_1) : A = Mat_3x3 * Mat_1 '    Case CalcType.M_N                          => OK
+        B = New MatrixExplain(Mat_3x3, Mat_3x3) : A = Mat_3x3 * Mat_3x3 'Case CalcType.M_M_SYM                      => OK
+        B = New MatrixExplain(Mat_3x3, Mat_3x4) : A = Mat_3x3 * Mat_3x4 'Case CalcType.M_M_ASYM                     => OK
+
+        B = New MatrixExplain(Mat_3x1, Mat_4x1) 'A = Mat_3x1 * Mat_4x1 'Case CalcType.VV_VV_ASYM                    => Nicht möglich
+        B = New MatrixExplain(Mat_1x3, Mat_1x4) 'A = Mat_1x3 * Mat_1x4 'Case CalcType.VH_VH_ASYM                    => Nicht möglich
+        B = New MatrixExplain(Mat_3x3, Mat_4x3) 'A = Mat_3x3 * Mat_3x4 'Case CalcType.M_M_ASYM                      => Nicht möglich
     End Sub
     Sub TestSort()
         Dim _3x3M As Mat = Mat_3x3.NP_ArgSort
@@ -70,6 +96,8 @@ Class test
     End Sub
 
     Sub New()
+
+        'Dim Test2 As Mat = NPSharp.Python.Slice(Mat_2x2, ":", MatSort1_0)
 
         If Not IsNothing(args.filter) Then filtername = args.filter()
         h = Pickle.Load(filtername).h  ' Blob needs to be converted!
@@ -95,7 +123,7 @@ Class test
             ' ------------------------------------------
             Dim origin As Mat = New Mat(image)
             Dim ycrcvorigin As Mat = origin.CvtColor(Emgu.CV.CvEnum.ColorConversion.Bgr2YCrCb)
-            Dim grayorigin As Mat = ExtractChannel(ycrcvorigin, 0)
+            Dim grayorigin As Mat = NPSharp.Python.Slice(ycrcvorigin, ":", ":", "0")
 
             ' ------------------------------------------
             ' Part 2 - Normalisieren
@@ -127,13 +155,13 @@ Class test
             Dim heightgridHR As Mat = Mat.NP_linspace(0, heightLR - 0.5, heightLR * 2)
             Dim widthgridHR As Mat = Mat.NP_linspace(0, widthLR - 0.5, widthLR * 2)
             Dim upscaledLR As Mat = bilinearinterp.Run(widthgridHR, heightgridHR)
-            upscaledLR.ShowCV()
+
             ' ------------------------------------------
             ' Part 6 - Calculate predictHR pixels
             ' ------------------------------------------
             Dim heightHR = upscaledLR.Height
             Dim widthHR = upscaledLR.Width
-            Dim predictHR As Mat = Mat.Zeros(heightHR - 2 * margin, widthHR - 2 * margin)
+            Dim predictHR As Mat = Mat.Zeros(heightHR - 2 * margin, widthHR - 2 * margin, Emgu.CV.CvEnum.DepthType.Cv64F)
 
             Dim operationcount As Integer = 0
             Dim totaloperations As Integer = (heightHR - 2 * margin) * (widthHR - 2 * margin)
@@ -142,24 +170,35 @@ Class test
                 For col As Integer = margin To widthHR - margin
                     operationcount += 1
 
-                    Dim Patch As Mat = New Mat(upscaledLR, New Rectangle(row - patchmargin, col - patchmargin, row + patchmargin + 1, col + patchmargin + 1)).Clone
-                    Patch = Patch.NP_Ravel
+                    If operationcount Mod 100 = 0 Then Console.WriteLine(operationcount & "/" & totaloperations)
+                    ' ------------------------------------------
+                    ' Part 7 - Patch
+                    ' ------------------------------------------
+                    Dim Patch As Mat = New Mat(upscaledLR,
+                                               NPSharp.Python.Rectangle(
+                                                   row - patchmargin,
+                                                   col - patchmargin,
+                                                   row + patchmargin + 1,
+                                                   col + patchmargin + 1)).Clone.NP_Ravel
 
-                    Dim gradientblock As Mat = New Mat(upscaledLR, New Rectangle(row - gradientmargin,
-                                                                                         col - gradientmargin,
-                                                                                         row + gradientmargin,
-                                                                                         col + gradientmargin)).Clone
+                    Dim gradientblock = New Mat(upscaledLR,
+                                                NPSharp.Python.Rectangle(
+                                                    row - gradientmargin,
+                                                    col - gradientmargin,
+                                                    row + gradientmargin,
+                                                    col + gradientmargin)).Clone
 
                     Dim HK = New hashkey(gradientblock, Qangle, weighting)
                     Dim angle = HK.angle
                     Dim strength = HK.strength
                     Dim coherence = HK.coherence
 
+                    gradientblock.Dispose() : HK = Nothing
+
                     Dim pixeltype As Integer = (row - margin) Mod R * R + (col - margin) Mod R
 
-                    'predictHR(row - margin, col - margin) = patch.dot(h{angle,strength,coherence,pixeltype}) => same as 3 Lines ...
-                    Dim PatchMat As Mat = h(angle)(strength)(coherence)(pixeltype)
-                    Dim PatchMCV As New Emgu.CV.Structure.MCvScalar(PatchMat.Dot(PatchMat))
+                    Dim PatchMat As Mat ' = h(angle)(strength)(coherence)(pixeltype)
+                    Dim PatchMCV As Mat '= New Emgu.CV.Structure.MCvScalar(PatchMat.Dot(PatchMat, True))
                     'predictHR.Row(row - margin).Col(col - margin).SetTo(PatchMCV)
 
                 Next
@@ -167,13 +206,14 @@ Class test
 
             predictHR = NPSharp.NPEmgu.Clip(Multiply(NPSharp.NPEmgu.AsType(predictHR, DataType._Float), 255), 0, 255) ' predictHR.astype("float") * 255
 
-            Dim Result = NPSharp.NPEmgu.Zeros(heightHR, widthHR, 3)
+            Dim Result = Mat.Zeros(heightHR, widthHR, 3)
 
             Dim y As Object = ExtractChannel(ycrcvorigin, 0)
 
             bilinearinterp = InterPolate.interp2d(widthgridLR, heightgridLR, y, kind:="linear")
+            Dim Result1 = bilinearinterp.Run(widthgridHR, heightgridHR)
             'result(":", ":", 0) = bilinearinterp(widthgridHR, heightgridHR) => Test following 2 Lines
-            Dim result1 As New Mat : Emgu.CV.CvInvoke.Resize(grayorigin, upscaledLR, New System.Drawing.Size(widthgridHR.Width, heightgridHR.Height), , , Emgu.CV.CvEnum.Inter.Linear)
+            'Dim result1 As New Mat : Emgu.CV.CvInvoke.Resize(grayorigin, upscaledLR, New System.Drawing.Size(widthgridHR.Width, heightgridHR.Height), , , Emgu.CV.CvEnum.Inter.Linear)
             Result.Row(0).Col(0).Data(0).SetTo(result1)
             Dim cr As Object = ExtractChannel(ycrcvorigin, 1)
 
@@ -240,6 +280,7 @@ Class Pickle
 
     End Sub
 End Class
+
 <Serializable()>
 Class PickleData
     Property h As Mat()()()() = {{{{New Mat(30, 30, Emgu.CV.CvEnum.DepthType.Cv32S, 3)}.ToArray}.ToArray}.ToArray}.ToArray

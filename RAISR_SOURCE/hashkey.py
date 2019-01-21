@@ -28,7 +28,9 @@ def hashkey(block, Qangle, W):
 
     # Sort w and v according to the descending order of w
     # w = np.array([[1,0,2],[5,4,6],[9,7,8]])
-    idx = w.argsort()[::-1]
+    idx = w.argsort()
+    idx = idx[::-1]
+
     w = w[idx]
     v = v[:,idx]
 

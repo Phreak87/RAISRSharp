@@ -8,16 +8,13 @@ Module gaussian2d
         Dim m As Integer = (shape(0) - 1) / 2
         Dim n As Integer = (shape(1) - 1) / 2
 
-        Dim Y_X As Tuple(Of Double(), Double()()) = NPSharp.NPNative.OGrid({-m, m + 1}, {-n, n + 1})
+        Dim Y_X As Tuple(Of Double(), Double()()) = NPSharp.NPEmgu.OGrid({-m, m + 1}, {-n, n + 1})
         Dim Y = New Mat(Y_X.Item1) ' VectorV
         Dim X = New Mat(Y_X.Item2) ' VectorH
 
-        Dim MX_ = X * X ' VectorH * VectorH
-        Dim MY_ = Y * Y ' VectorV * VectorV
-        Dim A_ = MX_ + MY_
-        Dim N_ = A_ * -1
-        Dim D_ = A_ / (2.0 * sigma * sigma)
-        Dim h = D_.exp
+        Dim M2 As Mat = ((X * X + Y * Y) / (2 * sigma * sigma)) * -1 ' VectorH * VectorH
+        Dim h = M2.Exp
+
         'h(h < NP.finfo(h.dtype).eps * h.max()) = 0
         Dim sumh = NPSharp.NPEmgu.Sum(h)
         If sumh <> 0 Then h = h / sumh
