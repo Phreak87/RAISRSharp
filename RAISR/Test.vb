@@ -177,16 +177,17 @@ Class test
                     Dim Patch As Mat = New Mat(upscaledLR,
                                                NPSharp.Python.Rectangle(
                                                    row - patchmargin,
-                                                   col - patchmargin,
                                                    row + patchmargin + 1,
-                                                   col + patchmargin + 1)).Clone.NP_Ravel
+                                                   col - patchmargin,
+                                                   col + patchmargin + 1)).Clone
+                    Patch = Patch.NP_Ravel
 
                     Dim gradientblock = New Mat(upscaledLR,
                                                 NPSharp.Python.Rectangle(
                                                     row - gradientmargin,
+                                                    row + gradientmargin + 1,
                                                     col - gradientmargin,
-                                                    row + gradientmargin,
-                                                    col + gradientmargin)).Clone
+                                                    col + gradientmargin + 1)).Clone
 
                     Dim HK = New hashkey(gradientblock, Qangle, weighting)
                     Dim angle = HK.angle

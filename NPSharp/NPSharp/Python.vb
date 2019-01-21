@@ -13,8 +13,8 @@ Public Class Python
     ''' <param name="YMax"></param>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    Shared Function Rectangle(ByVal XMin As Integer, ByVal YMin As Integer, ByVal XMax As Integer, ByVal YMax As Integer) As System.Drawing.Rectangle
-        Dim n As New Drawing.Rectangle(XMin, YMin, XMax - (XMin - 1), (YMax - (YMin - 1)))
+    Shared Function Rectangle(ByVal XMin As Integer, ByVal XMax As Integer, ByVal Ymin As Integer, ByVal YMax As Integer) As System.Drawing.Rectangle
+        Dim n As New Drawing.Rectangle(XMin, Ymin, XMax - XMin, YMax - Ymin)
         Return n
     End Function
 

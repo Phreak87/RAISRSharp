@@ -285,8 +285,7 @@ Partial Public Class NPEmgu
         Private Function ZerosToOne(ByVal A As Mat) As Mat
             Dim RES As New Mat(A.Rows, A.Cols, A.Depth, A.Channels)
             Dim ONES As Mat = Mat.Ones(A.Rows, A.Cols, A.Depth, A.Channels)
-            Emgu.CV.CvInvoke.Max(A.OrgMat, ONES.OrgMat, RES.OrgMat)
-            ONES.Dispose()
+            Emgu.CV.CvInvoke.Max(A.OrgMat, ONES.OrgMat, RES.OrgMat) : ONES.Dispose()
             Return New Mat(RES.OrgMat)
         End Function
 #End Region

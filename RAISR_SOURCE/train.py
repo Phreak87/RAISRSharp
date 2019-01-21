@@ -1,4 +1,4 @@
-import cv2
+﻿import cv2
 import numpy as np
 import os
 import pickle
@@ -9,9 +9,7 @@ from gaussian2d import gaussian2d
 from gettrainargs import gettrainargs
 from hashkey import hashkey
 from math import floor
-from matplotlib import pyplot as plt
 from scipy import interpolate
-from skimage import transform
 
 args = gettrainargs()
 

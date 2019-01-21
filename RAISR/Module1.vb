@@ -1,7 +1,7 @@
 ﻿Module Module1
 
     Sub Main()
-        Dim n As New test
+        Dim n As New train
     End Sub
 
 End Module

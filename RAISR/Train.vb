@@ -2,7 +2,7 @@
 Imports System.Collections.Generic
 Imports System
 
-Module train
+Class train
 
     Public args As Object ' = gettrainargs()
     Public R As Integer = 2
@@ -16,17 +16,25 @@ Module train
     Public margin As Object = Math.Floor(maxblocksize / 2)
     Public patchmargin As Object = Math.Floor(patchsize / 2)
     Public gradientmargin As Object = Math.Floor(gradientsize / 2)
-    Public Q As Mat '= NPSharp.NPEmgu.Zeros(Tuple.Create(Qangle, Qstrength, Qcoherence, R * R, patchsize * patchsize, patchsize * patchsize))
-    Public V As Mat '= NPSharp.NPEmgu.Zeros(Tuple.Create(Qangle, Qstrength, Qcoherence, R * R, patchsize * patchsize))
-    Public h As Mat '= NPSharp.NPEmgu.Zeros(Tuple.Create(Qangle, Qstrength, Qcoherence, R * R, patchsize * patchsize))
+    Public Q As Mat '= Mat.Zeros(Qangle, Qstrength, Qcoherence, R * R, patchsize * patchsize, patchsize * patchsize)
+    Public V As Mat '= Mat.Zeros(Qangle, Qstrength, Qcoherence, R * R, patchsize * patchsize)
+    Public h As Mat '= Mat.Zeros(Qangle, Qstrength, Qcoherence, R * R, patchsize * patchsize)
     'Public Q As RAISR.FilterData = Pickle.Load(fp)
     'Public V As RAISR.FilterData = Pickle.Load(fp)
     Public weightingA As Mat = gaussian2d.gaussian2d({gradientsize, gradientsize}, 2)
-    Public weighting As Mat = NPSharp.NPEmgu.Diag(weighting.NP_Ravel)
+    Public weighting As Mat = NPSharp.NPEmgu.Diag(weightingA.NP_Ravel)
     Public imagelist As Object = New List(Of Object)()
 
     Sub New()
-        'imagelist.append(os.path.join(parent, filename))
+
+        For Each File In My.Computer.FileSystem.GetFiles(trainpath)
+            If File.EndsWith(".jpg") = True Or
+                File.EndsWith(".tif") = True Or
+                File.EndsWith(".jpeg") = True Then
+                imagelist.Add(File)
+            End If
+        Next
+
         ' sys.stdout.flush()
         'Q(angle, strength, coherence, pixeltype) = ATA
         'V(angle, strength, coherence, pixeltype) = ATb
@@ -95,4 +103,4 @@ Module train
         'operationcount = 1
     End Sub
 
-End Module
+End Class

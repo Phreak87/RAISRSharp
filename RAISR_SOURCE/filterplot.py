@@ -1,5 +1,4 @@
-import numpy as np
-from matplotlib import pyplot as plt
+﻿import numpy as np
 
 def filterplot(h, R, Qangle, Qstrength, Qcoherence, patchsize):
     for pixeltype in range(0,R*R):

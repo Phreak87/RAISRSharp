@@ -59,6 +59,7 @@ def hashkey(block, Qangle, W):
         strength = 2
     else:
         strength = 1
+
     if u < 0.25:
         coherence = 0
     elif u > 0.5:
