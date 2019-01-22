@@ -16,9 +16,9 @@ Class train
     Public margin As Object = Math.Floor(maxblocksize / 2)
     Public patchmargin As Object = Math.Floor(patchsize / 2)
     Public gradientmargin As Object = Math.Floor(gradientsize / 2)
-    Public Q As Mat '= Mat.Zeros(Qangle, Qstrength, Qcoherence, R * R, patchsize * patchsize, patchsize * patchsize)
-    Public V As Mat '= Mat.Zeros(Qangle, Qstrength, Qcoherence, R * R, patchsize * patchsize)
-    Public h As Mat '= Mat.Zeros(Qangle, Qstrength, Qcoherence, R * R, patchsize * patchsize)
+    Public Q = Mat.Zeros(Qangle, Qstrength, Qcoherence, R * R, patchsize * patchsize, patchsize * patchsize)
+    Public V = Mat.Zeros(Qangle, Qstrength, Qcoherence, R * R, patchsize * patchsize)
+    Public h = Mat.Zeros(Qangle, Qstrength, Qcoherence, R * R, patchsize * patchsize)
     'Public Q As RAISR.FilterData = Pickle.Load(fp)
     'Public V As RAISR.FilterData = Pickle.Load(fp)
     Public weightingA As Mat = gaussian2d.gaussian2d({gradientsize, gradientsize}, 2)
@@ -34,10 +34,91 @@ Class train
                 imagelist.Add(File)
             End If
         Next
+        Dim imagecount As Integer = 1
 
+        For Each Image As String In imagelist
+            ' ------------------------------------------
+            ' Part 1 - Read and Convert to Grayscale
+            ' ------------------------------------------
+            Dim origin = New Mat(CStr(Image))
+            Dim ycrcvorigin As Mat = origin.CvtColor(Emgu.CV.CvEnum.ColorConversion.Bgr2YCrCb)
+            Dim grayorigin As Mat = NPSharp.Python.Slice(ycrcvorigin, ":", ":", "0")
+
+            ' ------------------------------------------
+            ' Part 2 - Normalisieren
+            ' ------------------------------------------
+            grayorigin = grayorigin.NP_AsType(Emgu.CV.CvEnum.DepthType.Cv64F).Normalize(
+                grayorigin.NP_Min / 255,
+                grayorigin.NP_Max / 255,
+                Emgu.CV.CvEnum.NormType.MinMax)
+
+            ' ------------------------------------------
+            ' Part 3 - Resize
+            ' ------------------------------------------
+            Dim height = grayorigin.Height
+            Dim width = grayorigin.Width
+            Dim LR As Mat = Transform.Resize(grayorigin,
+                                             NPSharp.Python.Size(Math.Floor((height + 1) / 2),
+                                                                 Math.Floor((width + 1) / 2)),
+                                                                 Emgu.CV.CvEnum.BorderType.Reflect,
+                                                                 False)
+
+            ' ------------------------------------------
+            ' Part 4 - Upscale
+            ' ------------------------------------------
+            height = LR.Height : width = LR.Width
+            Dim heightgrid As Mat = Mat.NP_linspace(0, height - 1, height)
+            Dim widthgrid As Mat = Mat.NP_linspace(0, width - 1, width)
+            Dim bilinearinterp = New NPSharp.NPEmgu.Interp2d(widthgrid, heightgrid, LR, Emgu.CV.CvEnum.Inter.Linear)
+            heightgrid = Mat.NP_linspace(0, height - 1, height * 2 - 1)
+            widthgrid = Mat.NP_linspace(0, width - 1, width * 2 - 1)
+
+            Dim upscaledLR As Mat = bilinearinterp.Run(widthgrid, heightgrid)
+            height = upscaledLR.Height
+            width = upscaledLR.Width
+
+            Dim OperationCount As Integer = 0
+            Dim TotalOperations As Integer = (height - 2 * margin) * (width - 2 * margin)
+
+            For row = margin To height - margin
+                For col = margin To width - margin
+                    OperationCount += 1
+                    Dim Patch As Mat = New Mat(upscaledLR,
+                                               NPSharp.Python.Rectangle(
+                                                   row - patchmargin,
+                                                   row + patchmargin + 1,
+                                                   col - patchmargin,
+                                                   col + patchmargin + 1)).Clone
+                    Patch = Patch.Matrix(Patch.NP_Ravel)
+
+                    Dim gradientblock As Mat = New Mat(upscaledLR, NPSharp.Python.Rectangle(
+                                                       row - gradientmargin,
+                                                       (row + gradientmargin) + 1,
+                                                       col - gradientmargin,
+                                                       (col + gradientmargin) + 1))
+
+                    Dim HK = New hashkey(gradientblock, Qangle, weighting)
+                    Dim angle = HK.angle
+                    Dim strength = HK.strength
+                    Dim coherence = HK.coherence
+
+                    Dim pixeltype As Integer = (row - margin) Mod R * R + (col - margin) Mod R
+                    Dim pixelHR As Mat = New Mat(grayorigin.NP_GetValue(row, col))
+
+                    Dim ATA As Mat = Patch.T.Dot(Patch, True)
+                    Dim ATb As Mat = Patch.T.Dot(pixelHR, True)
+                    ' ATb = ATb.array(ATb).ravel()
+
+                    Q(angle)(strength)(coherence)(pixeltype) = ATA.NP_GetData
+                    V(angle)(strength)(coherence)(pixeltype) = ATb.NP_GetData(0)
+
+                Next
+            Next
+            imagecount += 1
+        Next
+
+        MsgBox(1)
         ' sys.stdout.flush()
-        'Q(angle, strength, coherence, pixeltype) = ATA
-        'V(angle, strength, coherence, pixeltype) = ATb
         ' Pickle.Dump(Q, fp)
         ' Pickle.Dump(V, fp)
         'sys.stdout.flush()
@@ -54,18 +135,7 @@ Class train
     End Sub
 
     Sub Start()
-        'Dim imagecount As Object = 1
-        'Dim origin As Mat = Emgu.CV.CvInvoke.Imread(Image)
-        'Dim grayorigin As Mat = Emgu.CV.CvInvoke.CvtColor(origin, Emgu.CV.CvEnum.ColorConversion.COLOR_BGR2YCrCb)(":", ":", 0)
-        'grayorigin = Emgu.CV.CvInvoke.Normalize(grayorigin.astype("float"), Nothing, grayorigin.min() / 255, grayorigin.max() / 255, CvEnum.NormType.MinMax)
-        'Dim LR As Mat = transform.resize(grayorigin, Tuple.Create(Math.Floor((height + 1) / 2), Math.Floor((width + 1) / 2)), mode:="reflect", anti_aliasing:=False)
-        'Dim heightgrid As Mat = NPSharp.NPNative.linspace(0, height - 1, height)
-        'Dim widthgrid As Mat = NPSharp.NPNative.linspace(0, width - 1, width)
-        'Dim bilinearinterp As Object = interpolate.interp2d(widthgrid, heightgrid, LR, kind:="linear")
-        'heightgrid = NPSharp.NPEmgu.linspace(0, height - 1, height * 2 - 1)
-        'widthgrid = NPSharp.NPEmgu.linspace(0, width - 1, width * 2 - 1)
-        'Dim upscaledLR As Object = bilinearinterp(widthgrid, heightgrid)
-        'Dim operationcount As Integer = 0
+
         'Dim totaloperations As Object = (height - 2 * margin) * (width - 2 * margin)
         'operationcount = 1
         'Dim patch As Mat = upscaledLR((row - patchmargin)((row + patchmargin) + 1), (col - patchmargin)((col + patchmargin) + 1))

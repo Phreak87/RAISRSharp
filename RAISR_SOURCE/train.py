@@ -47,45 +47,52 @@ weighting = np.diag(weighting.ravel())
 
 # Get image list
 imagelist = []
-for parent, dirnames, filenames in os.walk(trainpath):
+for parent, dirnames, filenames in os.walk('C://Users//Phreak//Desktop//Github_Repos//RAISRSharp.git//trunk//RAISR//bin//Debug//train'):
     for filename in filenames:
         if filename.lower().endswith(('.bmp', '.dib', '.png', '.jpg', '.jpeg', '.pbm', '.pgm', '.ppm', '.tif', '.tiff')):
             imagelist.append(os.path.join(parent, filename))
 
 # Compute Q and V
 imagecount = 1
+
+
 for image in imagelist:
-    print('\r', end='')
-    print(' ' * 60, end='')
-    print('\rProcessing image ' + str(imagecount) + ' of ' + str(len(imagelist)) + ' (' + image + ')')
+
+	# ------------------------------------------
+	# Part 1 - Read and Convert to Grayscale
+	# ------------------------------------------
     origin = cv2.imread(image)
-    # Extract only the luminance in YCbCr
     grayorigin = cv2.cvtColor(origin, cv2.COLOR_BGR2YCrCb)[:,:,0]
-    # Normalized to [0,1]
-    grayorigin = cv2.normalize(grayorigin.astype('float'), None, grayorigin.min()/255, grayorigin.max()/255, cv2.NORM_MINMAX)
-    # Downscale (bicubic interpolation)
+    
+	# ------------------------------------------
+	# Part 2 - Normalize
+	# ------------------------------------------
+	grayorigin = cv2.normalize(grayorigin.astype('float'), None, grayorigin.min()/255, grayorigin.max()/255, cv2.NORM_MINMAX)
+
+	# ------------------------------------------
+	# Part 3 - Resize
+	# ------------------------------------------
     height, width = grayorigin.shape
     LR = transform.resize(grayorigin, (floor((height+1)/2),floor((width+1)/2)), mode='reflect', anti_aliasing=False)
-    # Upscale (bilinear interpolation)
+
+	# ------------------------------------------
+	# Part 4 - Upscale
+	# ------------------------------------------
     height, width = LR.shape
     heightgrid = np.linspace(0, height-1, height)
     widthgrid = np.linspace(0, width-1, width)
+	
     bilinearinterp = interpolate.interp2d(widthgrid, heightgrid, LR, kind='linear')
     heightgrid = np.linspace(0, height-1, height*2-1)
     widthgrid = np.linspace(0, width-1, width*2-1)
-    upscaledLR = bilinearinterp(widthgrid, heightgrid)
-    # Calculate A'A, A'b and push them into Q, V
+	upscaledLR = bilinearinterp(widthgrid, heightgrid)
     height, width = upscaledLR.shape
     operationcount = 0
     totaloperations = (height-2*margin) * (width-2*margin)
+	
     for row in range(margin, height-margin):
         for col in range(margin, width-margin):
-            if round(operationcount*100/totaloperations) != round((operationcount+1)*100/totaloperations):
-                print('\r|', end='')
-                print('#' * round((operationcount+1)*100/totaloperations/2), end='')
-                print(' ' * (50 - round((operationcount+1)*100/totaloperations/2)), end='')
-                print('|  ' + str(round((operationcount+1)*100/totaloperations)) + '%', end='')
-                sys.stdout.flush()
+
             operationcount += 1
             # Get patch
             patch = upscaledLR[row-patchmargin:row+patchmargin+1, col-patchmargin:col+patchmargin+1]

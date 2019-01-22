@@ -156,7 +156,11 @@ Partial Public Class NPEmgu
         Function T() As Mat
             Return New Mat(OrgMat.T)
         End Function
-
+        <DebuggerStepThrough()>
+        Function Matrix(ByVal A As Mat) As Mat
+            ' Converts to A-Matrix (But is already here)
+            Return A
+        End Function
         Function Exp() As Mat
             Dim Ret As New Mat : Emgu.CV.CvInvoke.Exp(OrgMat, Ret.OrgMat) : Return Ret
         End Function
@@ -198,6 +202,7 @@ Partial Public Class NPEmgu
         Shared Function Eye()
             Throw New Exception
         End Function
+
         Shared Function Zeros(ByVal Rows As Integer, ByVal Cols As Integer,
                         Optional ByVal DataType As Emgu.CV.CvEnum.DepthType = Emgu.CV.CvEnum.DepthType.Cv32S,
                         Optional ByVal Channels As Integer = 1)
@@ -208,6 +213,97 @@ Partial Public Class NPEmgu
                                 Optional ByVal Channels As Integer = 1)
             Return New Mat(Emgu.CV.Mat.Ones(Rows, Cols, DataType, Channels))
         End Function
+
+        Shared Function Zeros(ByVal A As Integer, ByVal B As Integer, ByVal C As Integer)
+            Dim RET(A - 1)()() As Double
+            For IA As Integer = 0 To A - 1
+                Dim _B(B - 1)() As Double : RET(IA) = _B
+                For IB = 0 To B - 1
+                    Dim _C(C - 1) As Double : RET(IA)(IB) = _C
+                    For IC = 0 To C - 1
+                        Dim _D As Double : RET(IA)(IB)(IC) = _D
+                    Next
+                Next
+            Next
+            Return RET
+        End Function
+        Shared Function Zeros(ByVal A As Integer, ByVal B As Integer, ByVal C As Integer, ByVal D As Integer)
+            Dim RET(A - 1)()()() As Double
+            For IA As Integer = 0 To A - 1
+                Dim _B(B - 1)()() As Double : RET(IA) = _B
+                For IB = 0 To B - 1
+                    Dim _C(C - 1)() As Double : RET(IA)(IB) = _C
+                    For IC = 0 To C - 1
+                        Dim _D(D - 1) As Double : RET(IA)(IB)(IC) = _D
+                        For ID = 0 To D - 1
+                            Dim _E As Double : RET(IA)(IB)(IC)(ID) = _E
+                        Next
+                    Next
+                Next
+            Next
+            Return RET
+        End Function
+        Shared Function Zeros(ByVal A As Integer, ByVal B As Integer, ByVal C As Integer, ByVal D As Integer, ByVal E As Integer)
+            Dim RET(A - 1)()()()() As Double
+            For IA As Integer = 0 To A - 1
+                Dim _B(B - 1)()()() As Double : RET(IA) = _B
+                For IB = 0 To B - 1
+                    Dim _C(C - 1)()() As Double : RET(IA)(IB) = _C
+                    For IC = 0 To C - 1
+                        Dim _D(D - 1)() As Double : RET(IA)(IB)(IC) = _D
+                        For ID = 0 To D - 1
+                            Dim _E(E - 1) As Double : RET(IA)(IB)(IC)(ID) = _E
+                        Next
+                    Next
+                Next
+            Next
+            Return RET
+        End Function
+        Shared Function Zeros(ByVal A As Integer, ByVal B As Integer, ByVal C As Integer, ByVal D As Integer, ByVal E As Integer, ByVal F As Integer )
+            Dim RET(A - 1)()()()()() As Double
+            For IA As Integer = 0 To A - 1
+                Dim _B(B - 1)()()()() As Double : RET(IA) = _B
+                For IB = 0 To B - 1
+                    Dim _C(C - 1)()()() As Double : RET(IA)(IB) = _C
+                    For IC = 0 To C - 1
+                        Dim _D(D - 1)()() As Double : RET(IA)(IB)(IC) = _D
+                        For ID = 0 To D - 1
+                            Dim _E(E - 1)() As Double : RET(IA)(IB)(IC)(ID) = _E
+                            For IE = 0 To E - 1
+                                Dim _F(F - 1) As Double : RET(IA)(IB)(IC)(ID)(IE) = _F
+                                For FI = 0 To F - 1
+                                    Dim _G As Double : RET(IA)(IB)(IC)(ID)(IE)(FI) = _G
+                                Next
+                            Next
+                        Next
+                    Next
+                Next
+            Next
+            Return RET
+        End Function
+        Shared Function Zeros(ByVal A As Integer, ByVal B As Integer, ByVal C As Integer, ByVal D As Integer, ByVal E As Integer, ByVal F As Integer, ByVal G As Integer)
+            Dim RET(A - 1)()()()()()() As Double
+            For IA As Integer = 0 To A - 1
+                Dim _B(B - 1)()()()()() As Double : RET(IA) = _B
+                For IB = 0 To B - 1
+                    Dim _C(C - 1)()()()() As Double : RET(IA)(IB) = _C
+                    For IC = 0 To C - 1
+                        Dim _D(D - 1)()()() As Double : RET(IA)(IB)(IC) = _D
+                        For ID = 0 To D - 1
+                            Dim _E(E - 1)()() As Double : RET(IA)(IB)(IC)(ID) = _E
+                            For IE = 0 To E - 1
+                                Dim _F(F - 1)() As Double : RET(IA)(IB)(IC)(ID)(IE) = _F
+                                For FI = 0 To F - 1
+                                    Dim _G As Double() : RET(IA)(IB)(IC)(ID)(IE)(FI) = _G
+                                Next
+                            Next
+                        Next
+                    Next
+                Next
+            Next
+            Return RET
+        End Function
+
 #End Region
 
 #Region "MY Extensions"
@@ -225,12 +321,17 @@ Partial Public Class NPEmgu
             End If
 
             Emgu.CV.CvInvoke.Imshow("Test", MaxB)
-            Emgu.CV.CvInvoke.WaitKey(3000)
+            Emgu.CV.CvInvoke.WaitKey(100)
             MaxB.Dispose()
         End Sub
 #End Region
 
 #Region "NP Extensions"
+        ReadOnly Property NP_GetValue(ByVal Row As Integer, ByVal Col As Integer) As Byte()
+            Get
+                Return OrgMat.GetData({Row, Col})
+            End Get
+        End Property
         ReadOnly Property NP_GetData()
             Get
                 Return NPPublic.GetData(Me)

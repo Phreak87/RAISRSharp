@@ -13,16 +13,6 @@ Public Class NPPublic
         If IsNothing(Array) Then Return Nothing
         Select Case (Array.GetType)
 
-            Case GetType(System.Double())
-                Dim Ret = New Mat(1, Array.length, Emgu.CV.CvEnum.DepthType.Cv64F, 1)
-                SetData(Ret, Array) : Return Ret
-            Case GetType(System.Double()())
-                Dim Ret = New Mat(Array.length, Array(0).length, Emgu.CV.CvEnum.DepthType.Cv64F, 1)
-                Dim Test = Ret.NP_GetData
-                SetData(Ret, Array) : Return Ret
-            Case GetType(Double()()())
-                Throw New Exception
-
             Case GetType(Integer)
                 Dim Ret = New Mat(1, 1, Emgu.CV.CvEnum.DepthType.Cv32S, 1)
                 SetData(Ret, Array) : Return Ret
@@ -33,6 +23,16 @@ Public Class NPPublic
                 Dim Ret = New Mat(Array.length, Array(0).length, Emgu.CV.CvEnum.DepthType.Cv32S, 1)
                 SetData(Ret, Array) : Return Ret
             Case GetType(Integer()()())
+                Throw New Exception
+
+            Case GetType(System.Double())
+                Dim Ret = New Mat(1, Array.length, Emgu.CV.CvEnum.DepthType.Cv64F, 1)
+                SetData(Ret, Array) : Return Ret
+            Case GetType(System.Double()())
+                Dim Ret = New Mat(Array.length, Array(0).length, Emgu.CV.CvEnum.DepthType.Cv64F, 1)
+                Dim Test = Ret.NP_GetData
+                SetData(Ret, Array) : Return Ret
+            Case GetType(Double()()())
                 Throw New Exception
 
         End Select

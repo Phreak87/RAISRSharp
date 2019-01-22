@@ -366,16 +366,37 @@ Public Class NPEmgu
             Y = Y.NP_AsType(A.Depth)
         End Sub
     End Class
-
     Class Linalg
         Sub New()
 
         End Sub
+        Public Shared Function matrix_power() As Mat
+
+        End Function
         Public Shared Function Det(ByVal A As Object) As Integer
 
         End Function
         Public Shared Function Inv(ByVal A As Double) As Mat
 
+        End Function
+    End Class
+    Class Transform
+        Shared Function Resize(ByVal Mat As Mat, ByVal Size As Drawing.Size, ByVal Mode As Emgu.CV.CvEnum.BorderType, ByVal AntiAlias As Boolean)
+            Dim RET As New Mat
+            Dim TF = Emgu.CV.CvInvoke.GetAffineTransform(
+                                             {New Drawing.PointF(0, 0),
+                                              New Drawing.PointF(Mat.Width - 1, 0),
+                                              New Drawing.PointF(0, Mat.Height - 1)},
+ _
+                                             {New Drawing.PointF(0, 0),
+                                              New Drawing.PointF(Size.Width, 0),
+                                              New Drawing.PointF(0, Size.Height)})
+
+            ' In OpenCV theres no way to Diable Interpolation. Using Nearest Neigbor as alternative
+            'Emgu.CV.CvInvoke.Resize(Mat, RET, Size, , , Emgu.CV.CvEnum.Inter.Nearest)
+            'Emgu.CV.CvInvoke.ResizeForFrame(Mat.OrgMat, RET.OrgMat, Size, Emgu.CV.CvEnum.Inter.Nearest, True)
+            Emgu.CV.CvInvoke.WarpAffine(Mat.OrgMat, RET.OrgMat, TF, Size, Emgu.CV.CvEnum.Inter.Nearest, Emgu.CV.CvEnum.Warp.Default, Mode)
+            Return RET
         End Function
     End Class
 #End Region

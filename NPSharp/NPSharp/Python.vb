@@ -2,8 +2,9 @@
 Imports NPSharp.NPPublic
 
 Public Class Python
+
     ''' <summary>
-    ''' Rectangle with Changed Parameters.
+    ''' Rectangle with Changed Parameters to Match Pythons usage
     ''' Instead of X,Y, Width, Height use
     ''' X,Y, LastXPoint, LastYPoint
     ''' </summary>
@@ -15,6 +16,18 @@ Public Class Python
     ''' <remarks></remarks>
     Shared Function Rectangle(ByVal XMin As Integer, ByVal XMax As Integer, ByVal Ymin As Integer, ByVal YMax As Integer) As System.Drawing.Rectangle
         Dim n As New Drawing.Rectangle(XMin, Ymin, XMax - XMin, YMax - Ymin)
+        Return n
+    End Function
+
+    ''' <summary>
+    ''' Size with Changed Parameters to Match Pythons usage
+    ''' </summary>
+    ''' <param name="X"></param>
+    ''' <param name="Y"></param>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Shared Function Size(ByVal X, ByVal Y) As System.Drawing.Size
+        Dim n As New Drawing.Size(Y, X)
         Return n
     End Function
 
