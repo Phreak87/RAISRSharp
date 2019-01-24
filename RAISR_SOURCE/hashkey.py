@@ -6,8 +6,6 @@ def hashkey(block, Qangle, W):
     # Calculate gradient
     gy, gx = np.gradient(block)
 
-    cv2.imshow ("test",gy)
-
     # Transform 2D matrix into 1D array
     gx = gx.ravel()
     gy = gy.ravel()

@@ -84,10 +84,24 @@ Class test
         B = New MatrixExplain(Mat_3x3, Mat_1) : A = Mat_3x3 * Mat_1 '    Case CalcType.M_N                          => OK
         B = New MatrixExplain(Mat_3x3, Mat_3x3) : A = Mat_3x3 * Mat_3x3 'Case CalcType.M_M_SYM                      => OK
         B = New MatrixExplain(Mat_3x3, Mat_3x4) : A = Mat_3x3 * Mat_3x4 'Case CalcType.M_M_ASYM                     => OK
-
         B = New MatrixExplain(Mat_3x1, Mat_4x1) 'A = Mat_3x1 * Mat_4x1 'Case CalcType.VV_VV_ASYM                    => Nicht möglich
         B = New MatrixExplain(Mat_1x3, Mat_1x4) 'A = Mat_1x3 * Mat_1x4 'Case CalcType.VH_VH_ASYM                    => Nicht möglich
         B = New MatrixExplain(Mat_3x3, Mat_4x3) 'A = Mat_3x3 * Mat_3x4 'Case CalcType.M_M_ASYM                      => Nicht möglich
+    End Sub
+    Sub TestDot()
+        ' Internet Example => OK
+        Dim A1 = New Mat({{1, 2}.ToArray,
+                         {3, 4}.ToArray})
+        Dim B1 = New Mat({{11, 12}.ToArray,
+                         {13, 14}.ToArray})
+        Dim C1 As Mat = A1.Dot(B1, True)
+
+        ' My Example => OK
+        Dim A2 = New Mat({{0.0, 2.2}.ToArray,
+                          {0.0, 2.2}.ToArray})
+        Dim B2 = New Mat({{2.2, 0.0}.ToArray,
+                          {0.0, 2.2}.ToArray})
+        Dim C2 As Mat = A2.Dot(B2, True)
     End Sub
     Sub TestSort()
         Dim _3x3M As Mat = Mat_3x3.NP_ArgSort
@@ -96,8 +110,7 @@ Class test
     End Sub
 
     Sub New()
-
-        'Dim Test2 As Mat = NPSharp.Python.Slice(Mat_2x2, ":", MatSort1_0)
+        TestDot()
 
         If Not IsNothing(args.filter) Then filtername = args.filter()
         h = Pickle.Load(filtername).h  ' Blob needs to be converted!
@@ -130,7 +143,7 @@ Class test
             ' ------------------------------------------
             Dim minorig As Double = grayorigin.NP_Min / 255
             Dim maxorig As Double = grayorigin.NP_Max / 255
-            grayorigin = grayorigin.NP_AsType(Emgu.CV.CvEnum.DepthType.Cv64F).Normalize(minorig, maxorig, Emgu.CV.CvEnum.NormType.MinMax)
+            grayorigin = grayorigin.NP_AsType(Emgu.CV.CvEnum.DepthType.Cv32F).Normalize(minorig, maxorig, Emgu.CV.CvEnum.NormType.MinMax)
 
             ' ------------------------------------------
             ' Part 3 - Low Resolution Grid
@@ -161,7 +174,7 @@ Class test
             ' ------------------------------------------
             Dim heightHR = upscaledLR.Height
             Dim widthHR = upscaledLR.Width
-            Dim predictHR As Mat = Mat.Zeros(heightHR - 2 * margin, widthHR - 2 * margin, Emgu.CV.CvEnum.DepthType.Cv64F)
+            Dim predictHR As Mat = Mat.Zeros(heightHR - 2 * margin, widthHR - 2 * margin, Emgu.CV.CvEnum.DepthType.Cv32F)
 
             Dim operationcount As Integer = 0
             Dim totaloperations As Integer = (heightHR - 2 * margin) * (widthHR - 2 * margin)

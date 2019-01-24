@@ -18,6 +18,6 @@ Module gaussian2d
         'h(h < NP.finfo(h.dtype).eps * h.max()) = 0
         Dim sumh = NPSharp.NPEmgu.Sum(h)
         If sumh <> 0 Then h = h / sumh
-        Return h
+        Return h.NP_AsType(Emgu.CV.CvEnum.DepthType.Cv32F)
     End Function
 End Module

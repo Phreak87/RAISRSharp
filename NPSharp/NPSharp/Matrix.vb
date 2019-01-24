@@ -108,6 +108,10 @@ Partial Public Class NPPublic
                 Case GetType(Integer()) : Return NP_DataType.Cv32S_Int32
                 Case GetType(Integer()()) : Return NP_DataType.Cv32S_Int32
 
+                Case GetType(Single) : Return NP_DataType.Cv32F_Single
+                Case GetType(Single()) : Return NP_DataType.Cv32F_Single
+                Case GetType(Single()()) : Return NP_DataType.Cv32F_Single
+
                 Case GetType(Double) : Return NP_DataType.Cv64F_Double
                 Case GetType(Double()) : Return NP_DataType.Cv64F_Double
                 Case GetType(Double()()) : Return NP_DataType.Cv64F_Double

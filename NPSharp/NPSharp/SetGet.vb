@@ -119,6 +119,7 @@ Public Class NPPublic
             Case Emgu.CV.CvEnum.DepthType.Cv8U : SetCV8U(A, Values) '   Byte
             Case Emgu.CV.CvEnum.DepthType.Cv16S : SetCV16S(A, Values) ' Int16
             Case Emgu.CV.CvEnum.DepthType.Cv32S : SetCV32S(A, Values) ' Int32/Integer
+            Case Emgu.CV.CvEnum.DepthType.Cv32F : SetCV32F(A, Values) ' Int32/Integer
             Case Emgu.CV.CvEnum.DepthType.Cv64F : SetCV64F(A, Values) ' Double
             Case Else : Throw New NotImplementedException
 
@@ -148,12 +149,25 @@ Public Class NPPublic
         End Select
     End Sub
     '<DebuggerStepThrough()>
+    Private Shared Sub SetCV32F(ByVal A As Mat, ByVal Values As Object)
+        Select Case Values.GetType
+            Case GetType(Single)
+                Marshal.WriteInt32(A.Row(0).DataPointer, Values)
+            Case GetType(Single())
+                Marshal.Copy(Values, 0, A.Row(0).DataPointer, Values.Length)
+            Case GetType(Single()())
+                For i As Integer = 0 To A.Rows - 1
+                    Marshal.Copy(Values(i), 0, A.Row(i).DataPointer, A.Row(i).Width)
+                Next
+        End Select
+    End Sub
+    '<DebuggerStepThrough()>
     Private Shared Sub SetCV32S(ByVal A As Mat, ByVal Values As Object)
         Select Case Values.GetType
             Case GetType(Integer)
                 Marshal.WriteInt32(A.Row(0).DataPointer, Values)
             Case GetType(Integer())
-                Marshal.Copy(Values, 0, A.Row(0).DataPointer, A.Width)
+                Marshal.Copy(Values, 0, A.Row(0).DataPointer, Values.Length)
             Case GetType(Integer()())
                 For i As Integer = 0 To A.Rows - 1
                     Marshal.Copy(Values(i), 0, A.Row(i).DataPointer, A.Row(i).Width)
@@ -176,7 +190,7 @@ Public Class NPPublic
 #End Region
 
 #Region "Html"
-    Shared Function Show(ByVal A As Double()()) As String
+    Shared Function Show(ByVal A As Single()()) As String
         Dim S As New System.Text.StringBuilder
         S.Append("<HTML><HEAD></HEADY><BODY>")
         S.Append("<Table Border=1>")
@@ -186,7 +200,7 @@ Public Class NPPublic
         S.Append("</BODY></HTML>")
         Return S.ToString
     End Function
-    Shared Function Show(ByVal A As Double()) As String
+    Shared Function Show(ByVal A As Single()) As String
         Dim S As New System.Text.StringBuilder
         S.Append("<HTML><HEAD></HEADY><BODY>")
         S.Append("<Table Border=1>")
@@ -194,7 +208,7 @@ Public Class NPPublic
         S.Append("</BODY></HTML>")
         Return S.ToString
     End Function
-    Private Shared Function AddHTMLLine(ByVal A As Double()) As String
+    Private Shared Function AddHTMLLine(ByVal A As Single()) As String
         Return ("<TR><TD>" & String.Join("</TD><TD>", A) & "</TD>")
     End Function
 #End Region

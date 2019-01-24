@@ -49,27 +49,29 @@ Public Class NPEmgu
             Case CalcType.M_VV_SYM : AMat = A : BMat = Repeat(B, A.rows, A.cols)
             Case CalcType.M_N : AMat = A : BMat = Repeat(New Mat(B), A.rows, A.cols)
             Case CalcType.M_M_SYM : AMat = A : BMat = B
-            Case CalcType.M_M_ASYM
-                Dim R As New List(Of Double())
-                For Row As Integer = 0 To A.Height - 1
-                    Dim CC(B.width - 1) As Double
-                    For Col As Integer = 0 To B.Width - 1
-                        Dim VecA As Mat = A.Row(Row) '       Zeile von Array A
-                        Dim VecB As Mat = B.Col(Col).T '     Transponierte Spalte von Array B
-                        Dim SumAB As Mat = VecA * VecB
-                        Dim AddAB = Sum(SumAB)
-                        VecA.Dispose()
-                        VecB.Dispose()
-                        CC(Col) = AddAB
-                    Next
-                    R.Add(CC)
-                Next
-                Return New Mat(R.ToArray)
+            Case CalcType.M_M_ASYM : Return Multiply_N_M(A, B)
             Case Else
                 Return Nothing
         End Select
         Emgu.CV.CvInvoke.Multiply(AMat.OrgMat, BMat.OrgMat, Ret.OrgMat, , AMat.Depth)
         Return Ret
+    End Function
+    Shared Function Multiply_N_M(ByVal A As Object, ByVal B As Object) As Mat
+        Dim R(A.height - 1)() As Double
+        For Row As Integer = 0 To A.Height - 1
+            Dim CC(B.width - 1) As Double
+            For Col As Integer = 0 To B.Width - 1
+                Dim VecA As Mat = A.Row(Row) '       Zeile von Array A
+                Dim VecB As Mat = B.Col(Col).T '     Transponierte Spalte von Array B
+                Dim SumAB As Mat = VecA * VecB
+                Dim AddAB = Sum(SumAB)
+                VecA.Dispose()
+                VecB.Dispose()
+                CC(Col) = AddAB
+            Next
+            R(Row) = CC
+        Next
+        Return New Mat(R)
     End Function
     Shared Function Substract(ByVal A As Object, ByVal B As Object) As Mat
         Dim MatDsc = New NPSharp.NPPublic.MatrixExplain(A, B)
@@ -200,7 +202,7 @@ Public Class NPEmgu
         Emgu.CV.CvInvoke.Add(AMat.OrgMat, BMat.OrgMat, Ret.OrgMat, , AMat.Depth)
         Return Ret
     End Function
-    Shared Function Sum(ByVal A As Mat) As Integer
+    Shared Function Sum(ByVal A As Mat) As Double
         Dim Ret As New Emgu.CV.Structure.MCvScalar : Ret = Emgu.CV.CvInvoke.Sum(A.OrgMat) : Return Ret.V0
     End Function
 #End Region
@@ -232,6 +234,17 @@ Public Class NPEmgu
     End Function
     Shared Function Diag(ByVal A As Mat, Optional ByVal k As Integer = 0) As Mat
         Select Case A.Depth
+            Case Emgu.CV.CvEnum.DepthType.Cv32F
+                Dim Res As New List(Of Single())
+                Dim Org = A.NP_GetData
+                If k = 0 Then
+                    For i As Integer = 0 To A.Height - 1
+                        Dim L1(A.Height - 1) As Single
+                        L1(i) = (Org(i)(0))
+                        Res.Add(L1)
+                    Next
+                End If
+                Return New Mat(Res.ToArray)
             Case Emgu.CV.CvEnum.DepthType.Cv16S
                 Dim Res As New List(Of Int16())
                 Dim Org = A.NP_GetData

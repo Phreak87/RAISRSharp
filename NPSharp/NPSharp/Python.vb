@@ -76,17 +76,18 @@ Public Class Python
                           ByVal SortRow As Mat) As Mat
         ' We have a Indexing Element Sort (e.g. [1,0])
 
-        'Dim Test As New Mat
-        'Emgu.CV.CvInvoke.MixChannels(Array.OrgMat, Test.OrgMat, {1, 0})
+        Dim DESC As New MatrixExplain(SortRow)
+        If DESC.MatTypA = MatrixExplain.DataType.VectorH Then
+            ' Needed ????
+            SortRow = SortRow.T ' Swap to Rows instead of Cols
+        End If
 
-        Dim DESC As New MatrixExplain(SortRow) : If DESC.MatTypA = MatrixExplain.DataType.VectorH Then SortRow = SortRow.T ' Swap to Rows instead of Cols
-        Dim DATA As Int16()() = SortRow.NP_GetData
-        Dim RET As New Mat()
-
+        Dim RET(Array.Height - 1)() As Double
         For i As Integer = 0 To Array.Height - 1
-            RET.PushBack(Array.Row(DATA(i)(0)))
+            Dim IdxAt As Integer = SortRow.NP_GetData(i)(0)
+            RET(i) = (Array.NP_GetValue(IdxAt))
         Next
-        Return RET
+        Return New Mat(RET)
     End Function
 
     Private Shared Function SwapRows(ByVal A As Mat) As Mat

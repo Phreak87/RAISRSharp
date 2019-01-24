@@ -1,5 +1,6 @@
 ﻿Imports System.Drawing
 Imports NPSharp.NPPublic
+Imports System.Runtime.InteropServices
 
 Partial Public Class NPEmgu
     Class Mat
@@ -7,9 +8,10 @@ Partial Public Class NPEmgu
         Property Cache As New List(Of Object)
 
         Public Overrides Function ToString() As String
-            Return "H: " & Height & ", W:" & Width & " D:" & DepthS.ToString
+            Return "H: " & Height & ", W:" & Width & " D:" & DepthS.ToString & " : " & ArrayToString(Me)
         End Function
 
+        <DebuggerStepThrough()>
         Sub Dispose()
             OrgMat.Dispose()
             OrgMat = Nothing
@@ -164,20 +166,67 @@ Partial Public Class NPEmgu
         Function Exp() As Mat
             Dim Ret As New Mat : Emgu.CV.CvInvoke.Exp(OrgMat, Ret.OrgMat) : Return Ret
         End Function
-        Function Dot(ByVal B As Mat, ByVal NonZero As Boolean) As Mat
-            If NonZero = True Then
-                Dim RES As New Mat
-                Dim AMin As Mat = ZerosToOne(Me) ' NumPy replaces Zeros with Ones
-                Dim BMin As Mat = ZerosToOne(B) ' NumPy replaces Zeros with Ones
-                RES = (AMin * BMin).Clone
-                AMin.Dispose()
-                BMin.Dispose()
-                Return RES
+        Function Dot(ByVal B As Mat, ByVal UseNPDot As Boolean) As Mat
+            If UseNPDot = True Then
+                Dim MX As New MatrixExplain(Me, B)
+                Select Case MX.CalcTyp
+                    Case MatrixExplain.CalcType.M_M_ASYM : Return Multiply_N_M(Me, B)
+                    Case MatrixExplain.CalcType.M_M_SYM : Return Multiply_N_M(Me, B)
+                    Case Else : Throw New Exception
+                End Select
             Else
                 Return Me * B
             End If
+        End Function
+
+        Enum EnumType
+            Mat = 0
+            Num = 1
+            Arr = 2
+        End Enum
+        '<DebuggerStepThrough()>
+        Private Shared Function RawType(ByVal A As Object) As EnumType
+            Select Case A.GetType
+                Case GetType(Mat) : Return EnumType.Mat
+
+                Case GetType(Short) : Return EnumType.Num
+                Case GetType(Integer) : Return EnumType.Num
+                Case GetType(Single) : Return EnumType.Num
+                Case GetType(Double) : Return EnumType.Num
+
+                Case GetType(Short()) : Return EnumType.Arr
+                Case GetType(Integer()) : Return EnumType.Arr
+                Case GetType(Single()) : Return EnumType.Arr
+                Case GetType(Double()) : Return EnumType.Arr
+
+                Case GetType(Short()()) : Return EnumType.Arr
+                Case GetType(Integer()()) : Return EnumType.Arr
+                Case GetType(Single()()) : Return EnumType.Arr
+                Case GetType(Double()()) : Return EnumType.Arr
+            End Select
             Return Nothing
         End Function
+        Shared Function ArrayToString(ByVal NumArray As Object) As String
+            Dim S As New System.Text.StringBuilder
+            Select Case RawType(NumArray)
+                Case EnumType.Num : S.Append(NumArray)
+                Case EnumType.Arr
+                    S.Append("{")
+                    For i As Integer = 0 To Math.Min(UBound(NumArray), 5)
+                        S.Append(ArrayToString(NumArray(i)) & ";")
+                        If (UBound(NumArray) > i) And i >= 5 Then S.Append("...;")
+                    Next
+                    S.Remove(S.Length - 1, 1)
+                    S.AppendLine("}")
+                Case EnumType.Mat
+                    Try
+                        Return ArrayToString(NumArray.NP_GetData)
+                    Catch
+                    End Try
+            End Select
+            Return S.ToString
+        End Function
+
         Function ConvertTo(ByVal A As Object, ByVal B As Object)
             Return NPSharp.NPEmgu.ConvertTo(A, B)
         End Function
@@ -187,16 +236,14 @@ Partial Public Class NPEmgu
         Function Reshape(ByVal Cn As Integer, Optional ByVal Rows As Integer = 0) As Mat
             Return New Mat(OrgMat.Reshape(Cn, Rows))
         End Function
+
         Function CvtColor(ByVal Conversation As Emgu.CV.CvEnum.ColorConversion) As Mat
-            Dim RES As New Mat
-            Emgu.CV.CvInvoke.CvtColor(OrgMat, RES.OrgMat, Conversation)
-            Return RES
+            Dim RET As New Mat : Emgu.CV.CvInvoke.CvtColor(OrgMat, RET.OrgMat, Conversation) : Return RET
         End Function
         Function Normalize(ByVal Min As Double, ByVal Max As Double, ByVal Norm As Emgu.CV.CvEnum.NormType)
-            Dim RET As New Mat
-            Emgu.CV.CvInvoke.Normalize(OrgMat, RET.OrgMat, Min, Max, Norm)
-            Return RET
+            Dim RET As New Mat : Emgu.CV.CvInvoke.Normalize(OrgMat, RET.OrgMat, Min, Max, Norm) : Return RET
         End Function
+
 #End Region
 #Region "CV Shared"
         Shared Function Eye()
@@ -259,7 +306,7 @@ Partial Public Class NPEmgu
             Next
             Return RET
         End Function
-        Shared Function Zeros(ByVal A As Integer, ByVal B As Integer, ByVal C As Integer, ByVal D As Integer, ByVal E As Integer, ByVal F As Integer )
+        Shared Function Zeros(ByVal A As Integer, ByVal B As Integer, ByVal C As Integer, ByVal D As Integer, ByVal E As Integer, ByVal F As Integer)
             Dim RET(A - 1)()()()()() As Double
             For IA As Integer = 0 To A - 1
                 Dim _B(B - 1)()()()() As Double : RET(IA) = _B
@@ -327,9 +374,19 @@ Partial Public Class NPEmgu
 #End Region
 
 #Region "NP Extensions"
-        ReadOnly Property NP_GetValue(ByVal Row As Integer, ByVal Col As Integer) As Byte()
+        ReadOnly Property NP_GetValue(ByVal Row As Integer) As Double()
             Get
-                Return OrgMat.GetData({Row, Col})
+                Dim Dbl As Double
+                Dim Value(Me.OrgMat.Cols - 1) As Double
+                Marshal.Copy(Me.OrgMat.DataPointer + (Row * Me.OrgMat.Cols) * Marshal.SizeOf(Dbl), Value, 0, Value.Length)
+                Return Value
+            End Get
+        End Property
+        ReadOnly Property NP_GetValue(ByVal Row As Integer, ByVal Col As Integer) As Double
+            Get
+                Dim Value As Double = 0
+                Marshal.Copy(Me.OrgMat.DataPointer + (Row * Me.OrgMat.Cols + Col) * Marshal.SizeOf(Value), {Value}, 0, 1)
+                Return Value
             End Get
         End Property
         ReadOnly Property NP_GetData()
@@ -371,7 +428,7 @@ Partial Public Class NPEmgu
             For i As Double = Start To Ends Step StepWidth
                 Ret.Add(Math.Round(i, 1))
             Next
-            Return New Mat(Ret.ToArray)
+            Return New Mat(Ret.ToArray).NP_AsType(Emgu.CV.CvEnum.DepthType.Cv32F)
         End Function
 
 #End Region
@@ -382,44 +439,19 @@ Partial Public Class NPEmgu
         End Function
 #End Region
 
-#Region "SP Extensions"
-        Private Function ZerosToOne(ByVal A As Mat) As Mat
-            Dim RES As New Mat(A.Rows, A.Cols, A.Depth, A.Channels)
-            Dim ONES As Mat = Mat.Ones(A.Rows, A.Cols, A.Depth, A.Channels)
-            Emgu.CV.CvInvoke.Max(A.OrgMat, ONES.OrgMat, RES.OrgMat) : ONES.Dispose()
-            Return New Mat(RES.OrgMat)
-        End Function
-#End Region
-
-
-
 #Region "ArgSort"
         Public Function NP_ArgSort() As Mat
             Dim Desc As New MatrixExplain(Me)
             Select Case Desc.MatTypA
                 Case MatrixExplain.DataType.VectorV
-                    Dim RET As Integer()() = Mat.Zeros(Rows, Cols).NP_GetData
-                    Dim ORG As Double()() = Me.Col(0).T.NP_GetData
-                    Dim DIF As Double()() = SortAsc(Me.Col(0).T).NP_GetData
-                    Dim IDXP As Integer = 0
-                    For i2 As Integer = 0 To ORG(0).Length - 1
-                        Dim IDX As Integer = Array.IndexOf(DIF(0), ORG(0)(i2))
-                        RET(i2)(0) = IDX : DIF(0)(IDX) = -999999
+                    Dim A = Me.NP_GetData
+                    Dim N As New Dictionary(Of Integer, Object)
+                    For i As Integer = 0 To Me.Width
+                        N.Add(i, A(i)(0))
                     Next
-                    Return New Mat(RET).NP_AsType(Emgu.CV.CvEnum.DepthType.Cv16S)
+                    Dim T = N.OrderBy(Function(s) s.Value).Select(Function(s) s.Key).ToArray
+                    Return New Mat(T).NP_AsType(Emgu.CV.CvEnum.DepthType.Cv16S)
             End Select
-            Dim M As Double()() = Mat.Zeros(Rows, Cols)
-            For i As Integer = 0 To Rows - 1
-                Dim ORG As Object = Me.Row(i).NP_GetData(0)
-                Dim DIF As Object = SortAsc(Row(i)).NP_GetData(0)
-                Dim IDXP As Integer = 0
-                For i2 As Integer = 0 To UBound(ORG)
-                    Dim IDX As Integer = Array.IndexOf(DIF, ORG(i2))
-                    If IDXP = IDX And IDX > 0 Then IDX += 1
-                    M(i)(i2) = IDX : IDXP = IDX
-                Next
-            Next
-            Return Python.Slice(ArrayToMat(M), ":", ":", "-1")
         End Function
         Private Shared Function SortRows(ByVal Mat As Mat) As Mat
             Dim Ret As New Mat

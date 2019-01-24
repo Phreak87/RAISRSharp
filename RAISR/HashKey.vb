@@ -19,27 +19,28 @@ Class hashkey
         Dim G As Mat = gx.NP_VStack(gy).T '          {81,2} => Vertikal Stapeln (1x1) + (1x1) => (1x2)
         Dim GTWG1 As Mat = G.T.Dot(WIn, True) '      W Multiplizieren mit Transponierter Matrix G
         Dim GTWG As Mat = GTWG1.Dot(G, False) '      GTWG1 Multiplizieren mit G
+        G.Dispose() : GTWG1.Dispose()
 
         Dim Eigen As New Eigen(GTWG)
-        Dim W = Eigen.Values
-        Dim V = Eigen.Vectors
+        GTWG.Dispose()
+        Dim W = Eigen.Values '                                                              ([0,0])
+        Dim V = Eigen.Vectors '                                                             ([1,0],[0,1])
 
         'Dim nonzerow = NPSharp.NPEmgu.Count_nonzero(IsReal(W)) : If nonzerow <> 0 Then W = real(W)
         'Dim nonzerov = NPSharp.NPEmgu.Count_nonzero(IsReal(V)) : If nonzerov <> 0 Then V = real(V)
 
-        Dim idx = W.NP_ArgSort '                            SortierREIHENFOLGE (Nicht Daten)
-        idx = NPSharp.Python.Slice(idx, ":", ":", "-1") '   Invertieren (Zeilen)
-
-        W = NPSharp.Python.Slice(W, idx)
-        V = NPSharp.Python.Slice(V, ":", idx)
+        Dim idx = W.NP_ArgSort '                            SortierREIHENFOLGE (Nicht Daten) => z.B. (Index 0,1)
+        idx = NPSharp.Python.Slice(idx, ":", ":", "-1") '   Invertieren (Zeilen)             => z.B. (Index 1,0)
+        W = NPSharp.Python.Slice(W, idx) '                                                   => z.B. (W = 0,0)
+        V = NPSharp.Python.Slice(V, ":", idx) '                                              => ([0,1],[1,0])
 
         Dim tv1 = V.NP_GetData(1)(0)
-        Dim theta = Math.Atan2(tv1, V.NP_GetData(0)(0))
+        Dim theta = Math.Atan2(tv1, V.NP_GetValue(0, 0))
         If theta < 0 Then theta = theta + pi
 
-        Dim lamda = W.NP_GetData(0)(0)
-        Dim sqrtlamda1 = Math.Sqrt(W.NP_GetData(0)(0))
-        Dim sqrtlamda2 = Math.Sqrt(W.NP_GetData(1)(0))
+        Dim lamda = W.NP_GetValue(0, 0)
+        Dim sqrtlamda1 = Math.Sqrt(W.NP_GetValue(0, 0))
+        Dim sqrtlamda2 = Math.Sqrt(W.NP_GetValue(1)(0))
 
         Dim u As Double = 0
         If sqrtlamda1 + sqrtlamda2 = 0 Then
